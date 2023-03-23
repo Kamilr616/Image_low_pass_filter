@@ -27,6 +27,7 @@ def show_image():
     img_show = ImageTk.PhotoImage(img_show)
     img_new_show = ImageTk.PhotoImage(img_new_show)
     # if the panels are None, initialize them
+    #TODO code below to main
     if panelA is None or panelB is None:
         # the first panel will store our original image
         panelA = Label(image=img_show)
@@ -80,6 +81,7 @@ img = None
 img_new = None
 # file path
 path = StringVar()
+#TODO default path and show
 
 # Mask type
 mask_type = IntVar()
