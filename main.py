@@ -2,10 +2,16 @@ import cv2
 import numpy
 from tkinter import *
 from PIL import Image, ImageTk
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, asksaveasfile
 
 
-#TODO image_save
+def image_save():
+    global img_new
+    file = asksaveasfile(initialfile='Untitled.png', defaultextension="*.png", filetypes=[("All Files", "*.*"), ("PNG", "*.png")])
+    if file:
+        cv2.imwrite(file.name, img_new)
+
+
 def select_image(flag):
     global img, img_new
     if flag == 1:
@@ -16,10 +22,11 @@ def select_image(flag):
         img = cv2.imread(path.get())
         img_new = img
     assert img is not None, "file could not be read, check with os.path.exists()"
-    #show_image()
+    # show_image()
     start()
 
-#TODO show_mask
+
+# TODO show_mask
 def show_image():
     # grab a reference to the image panels
     global panelA, panelB, img, img_new
@@ -78,12 +85,14 @@ def image_swap():
     img, img_new = img_new, img
     show_image()
 
-#TODO image noise func
+
+# TODO image noise func(repair rgb)
 def image_noise():
     global img
+    mul = w1.get()
     gauss_noise = numpy.zeros(img.shape, dtype=numpy.uint8)
     cv2.randn(gauss_noise, 128, 20)
-    gauss_noise = (gauss_noise * 0.5).astype(numpy.uint8)
+    gauss_noise = (gauss_noise * mul).astype(numpy.uint8)
     img = cv2.add(img, gauss_noise)
     show_image()
 
@@ -149,6 +158,11 @@ btn1 = Button(root, text="Filter", command=start)
 btn1.pack(side="bottom", fill="both", expand=1, padx="10", pady="10")
 btn2 = Button(root, text="Swap images", command=image_swap)
 btn2.pack(side="bottom", fill="both", expand=1, padx="10", pady="10")
+btn4 = Button(root, text="Save as", command=image_save)
+btn4.pack(side="bottom", fill="both", expand=1, padx="10", pady="10")
+
+w1 = Scale(root, from_=0, resolution=0.1, to=5, orient=VERTICAL)
+w1.pack()
 btn3 = Button(root, text="Add noise", command=image_noise)
 btn3.pack(side="bottom", fill="both", expand=1, padx="10", pady="10")
 
