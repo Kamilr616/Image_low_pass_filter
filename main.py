@@ -6,68 +6,69 @@ from tkinter.filedialog import askopenfilename
 
 
 def select_image():
+    global img, img_new
     path.set(askopenfilename())
+    if len(path.get()) > 0:
+        img = cv2.imread(path.get())
+        img_new = img
+    assert img is not None, "file could not be read, check with os.path.exists()"
 
 
-def show_image(imgA, imgB):
+def show_image():
     # grab a reference to the image panels
-    global panelA, panelB
+    global panelA, panelB, img, img_new
     # OpenCV represents images in BGR order; however PIL represents
     # images in RGB order, so we need to swap the channels
-    img = cv2.cvtColor(imgA, cv2.COLOR_BGR2RGB)
+    img_show = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # convert the images to PIL format...
-    img = Image.fromarray(img)
-    img_new = Image.fromarray(imgB)
+    img_show = Image.fromarray(img_show)
+    img_new_show = Image.fromarray(img_new)
     # ...and then to ImageTk format
-    img = ImageTk.PhotoImage(img)
-    img_new = ImageTk.PhotoImage(img_new)
+    img_show = ImageTk.PhotoImage(img_show)
+    img_new_show = ImageTk.PhotoImage(img_new_show)
     # if the panels are None, initialize them
     if panelA is None or panelB is None:
         # the first panel will store our original image
-        panelA = Label(image=img)
-        panelA.image = img
+        panelA = Label(image=img_show)
+        panelA.image = img_show
         panelA.pack(side="left", padx=10, pady=10)
         # while the second panel will store the edge map
-        panelB = Label(image=img_new)
-        panelB.image = img_new
+        panelB = Label(image=img_new_show)
+        panelB.image = img_new_show
         panelB.pack(side="right", padx=10, pady=10)
     # otherwise, update the image panels
     else:
         # update the pannels
-        panelA.configure(image=img)
-        panelB.configure(image=img_new)
-        panelA.image = img
-        panelB.image = img_new
+        panelA.configure(image=img_show)
+        panelB.configure(image=img_new_show)
+        panelA.image = img_show
+        panelB.image = img_new_show
 
 
 def start():
     # open a file chooser dialog and allow the user to select an input
     # image
-    size = int(mask_size.get())
+    global img, img_new
+    m_size = int(mask_size.get())
     m_type = mask_type.get()
-    # ensure a file path was selected
-    if len(path.get()) > 0:
-        # load the image from disk
-        img = cv2.imread(path.get())
-        img_new = img
-        assert img is not None, "file could not be read, check with os.path.exists()"
 
-        # The operation works like this: keep this kernel above a pixel, add all the 25 pixels below this kernel,
-        # take the average, and replace the central pixel with the new average value.
-        # This operation is continued for all the pixels in the image.
+    if m_type == 102:
+        img_new = cv2.blur(img, (m_size, m_size))
+    elif m_type == 101:
+        img_new = cv2.medianBlur(img, m_size)
+    elif m_type == 103:
+        img_new = cv2.GaussianBlur(img, (m_size, m_size), 0)
+    elif m_type == 104:
+        img_new = cv2.bilateralFilter(img, m_size, 75, 75)
 
-        if m_type == 102:
-            mask1 = numpy.ones((size, size), dtype=float) / size ** 2
-            img_new = cv2.filter2D(img, -1, mask1)
-        elif m_type == 101:
-            img_new = cv2.medianBlur(img, size)
-        elif m_type == 103:
-            img_new = cv2.GaussianBlur(img, (size, size), 0)
-        elif m_type == 104:
-            img_new = cv2.bilateralFilter(img, 9, 75, 75)
+    img_new = img_new.astype(numpy.uint8)
+    show_image()
 
-        img_new = img_new.astype(numpy.uint8)
-        show_image(img, img_new)
+
+def image_swap():
+    global img, img_new
+    img, img_new = img_new, img
+    show_image()
 
 
 # initialize the window toolkit along with the two image panels
@@ -75,12 +76,14 @@ root = Tk()
 root.title("Low pass filter")
 panelA = None
 panelB = None
+img = None
+img_new = None
 # file path
 path = StringVar()
 
 # Mask type
 mask_type = IntVar()
-mask_type.set(1)
+mask_type.set(102)
 
 masks = [("Median", 101),
          ("Average", 102),
@@ -90,7 +93,7 @@ masks = [("Median", 101),
 Label(root,
       text="Choose mask type:",
       justify=LEFT,
-      padx=20).pack()
+      padx=20).pack(anchor=W)
 
 for mask, val in masks:
     Radiobutton(root,
@@ -100,21 +103,33 @@ for mask, val in masks:
                 value=val).pack(anchor=W)
 
 # Mask size
+mask_size = IntVar()
+mask_size.set(3)
+
+sizes = [("3x3", 3),
+         ("5x5", 5),
+         ("7x7", 7),
+         ("9x9", 9),
+         ("11x11", 11)]
+
 Label(root,
       text="Choose mask size:",
       justify=LEFT,
-      padx=20).pack()
+      padx=20).pack(anchor=W)
 
-mask_size = Scale(root, from_=1, to=10, orient=HORIZONTAL)
-mask_size.set(3)
-mask_size.pack()
+for size, val in sizes:
+    Radiobutton(root,
+                text=size,
+                padx=20,
+                variable=mask_size,
+                value=val).pack(anchor=W)
 
-# create a button, then when pressed, will trigger a file chooser
-# dialog and allow the user to select an input image; then add the
-# button the GUI
+# create a button,then add the button the GUI
 btn = Button(root, text="Select an image", command=select_image)
 btn.pack(side="bottom", fill="both", expand=1, padx="10", pady="10")
-btn1 = Button(root, text="Start", command=start)
+btn1 = Button(root, text="Filter", command=start)
+btn1.pack(side="bottom", fill="both", expand=1, padx="10", pady="10")
+btn1 = Button(root, text="Swap images", command=image_swap)
 btn1.pack(side="bottom", fill="both", expand=1, padx="10", pady="10")
 # kick off the GUI
 root.mainloop()
