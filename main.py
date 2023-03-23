@@ -43,7 +43,7 @@ def show_image(imgA, imgB):
 def start():
     # open a file chooser dialog and allow the user to select an input
     # image
-    size = mask_size.get()
+    size = int(mask_size.get())
     m_type = mask_type.get()
     # ensure a file path was selected
     if len(path.get()) > 0:
@@ -57,8 +57,8 @@ def start():
         # This operation is continued for all the pixels in the image.
 
         if m_type == 102:
-            mask = numpy.ones((size, size), dtype=float) / size ** 2
-            img_new = cv2.filter2D(img, -1, mask)
+            mask1 = numpy.ones((size, size), dtype=float) / size ** 2
+            img_new = cv2.filter2D(img, -1, mask1)
         elif m_type == 101:
             img_new = cv2.medianBlur(img, size)
         elif m_type == 103:
