@@ -82,6 +82,7 @@ def start():
 
     if m_type == 102:
         kernel = numpy.ones((m_size, m_size), numpy.uint8) / m_size ** 2
+        kernel = kernel / numpy.sum(kernel)
     if m_type == 105:
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (m_size, m_size))
         kernel = kernel / numpy.sum(kernel)
@@ -102,6 +103,7 @@ def start():
         kernel = cv2.getGaussianKernel(m_size, 0)
         kernel = numpy.outer(kernel, kernel.transpose())
     elif m_type == 104:
+        kernel = numpy.ones((m_size, m_size), numpy.uint8)
         img_new = cv2.bilateralFilter(img, m_size, 75, 75)
 
     if m_type != 104 and m_type != 101:
