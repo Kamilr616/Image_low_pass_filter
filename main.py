@@ -3,7 +3,6 @@ import numpy
 from tkinter import *
 from PIL import Image, ImageTk
 from tkinter.filedialog import askopenfilename, asksaveasfile
-from tkinter import ttk
 
 
 def image_save():
@@ -28,7 +27,8 @@ def select_image(flag):
     start()
 
 
-def create_kernel_labels(kernel):
+def create_kernel_labels():
+    global kernel
     for i in range(kernel.shape[0]):
         for j in range(kernel.shape[1]):
             label = Label(kernel_frame, text="{:.2f}".format(kernel[i][j]), borderwidth=1, relief="solid", width=5,
@@ -36,7 +36,6 @@ def create_kernel_labels(kernel):
             label.grid(row=i, column=j)
 
 
-# TODO show_mask
 def show_image():
     # grab a reference to the image panels
     global panelA, panelB, img, img_new, kernel
@@ -70,7 +69,7 @@ def show_image():
         panelB.image = img_new_show
     for label in kernel_frame.grid_slaves():
         label.destroy()
-    create_kernel_labels(kernel)
+    create_kernel_labels()
     root.update()
 
 
@@ -83,15 +82,12 @@ def start():
 
     if m_type == 102:
         kernel = numpy.ones((m_size, m_size), numpy.uint8) / m_size ** 2
-        img_new = cv2.filter2D(img, -1, kernel)
     if m_type == 105:
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (m_size, m_size))
         kernel = kernel / numpy.sum(kernel)
-        img_new = cv2.filter2D(img, -1, kernel)
     elif m_type == 106:
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (m_size, m_size))
         kernel = kernel / numpy.sum(kernel)
-        img_new = cv2.filter2D(img, -1, kernel)
     elif m_type == 107:
         kernel = numpy.ones((m_size, m_size), dtype=numpy.uint8)
         kernel = kernel / numpy.sum(kernel)
@@ -99,16 +95,17 @@ def start():
         kernel[0, -1] = 0
         kernel[-1, 0] = 0
         kernel[-1, -1] = 0
-        img_new = cv2.filter2D(img, -1, kernel)
     elif m_type == 101:
         kernel = numpy.ones((m_size, m_size), numpy.uint8)
         img_new = cv2.medianBlur(img, m_size)
     elif m_type == 103:
         kernel = cv2.getGaussianKernel(m_size, 0)
         kernel = numpy.outer(kernel, kernel.transpose())
-        img_new = cv2.filter2D(img, -1, kernel)
     elif m_type == 104:
         img_new = cv2.bilateralFilter(img, m_size, 75, 75)
+
+    if m_type != 104 and m_type != 101:
+        img_new = cv2.filter2D(img, -1, kernel)
 
     img_new = img_new.astype(numpy.uint8)
     show_image()
@@ -195,13 +192,13 @@ kernel_frame = Frame(image_frame)
 kernel_frame.pack(side="left", pady=20)
 
 mask_type = IntVar()
-masks = [("Median", 101),
-         ("Average", 102),
+masks = [("Average", 102),
          ("Gaussian", 103),
-         ("Bilateral", 104),
          ("Rectangle", 105),
          ("Eclipse", 106),
-         ("Trapezoid", 107)]
+         ("Trapezoid", 107),
+         ("Median", 101),
+         ("Bilateral", 104)]
 
 for mask, val in masks:
     Radiobutton(frame3a,
@@ -227,8 +224,7 @@ for size, val in sizes:
                 value=val).pack(anchor=W)
 lang = IntVar()
 langs = [("English", 201),
-         ("Polski", 202),
-         ("Inny", 203)]
+         ("Polski", 202)]
 for t, val in langs:
     Radiobutton(frame3c,
                 text=t,
@@ -236,10 +232,10 @@ for t, val in langs:
                 variable=lang,
                 value=val).pack(anchor=W)
 
-
 mask_size.set(5)
 mask_type.set(102)
 lang.set(201)
+
 select_image(0)
 
 # kick off the GUI
