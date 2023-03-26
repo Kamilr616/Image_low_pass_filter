@@ -1,19 +1,19 @@
 import cv2
 import numpy
-from tkinter import *
+from tkinter import Button, Label, Radiobutton, Tk, StringVar, IntVar, Frame, Scale
 from PIL import Image, ImageTk
 from tkinter.filedialog import askopenfilename, asksaveasfile
 
 
 def image_save():
     global img_new
-    file = asksaveasfile(initialfile='Untitled.png', defaultextension="*.png",
+    file = asksaveasfile(initialfile='image.png', defaultextension="*.png",
                          filetypes=[("All Files", "*.*"), ("PNG", "*.png")])
     if file:
         cv2.imwrite(file.name, img_new)
 
 
-def select_image(flag):
+def select_image(flag=0):
     global img, img_new
     if flag == 1:
         path.set(askopenfilename())
@@ -29,11 +29,13 @@ def select_image(flag):
 
 def create_kernel_labels():
     global kernel
-    for i in range(kernel.shape[0]):
-        for j in range(kernel.shape[1]):
-            label = Label(kernel_frame, text="{:.2f}".format(kernel[i][j]), borderwidth=1, relief="solid", width=5,
-                          height=2)
-            label.grid(row=i, column=j)
+    m_size = mask_size.get()
+    for i in range(m_size):
+        for j in range(m_size):
+            g = Label(kernel_frame, text=f"{kernel[i][j]:.2f}", borderwidth=1, relief="solid",
+                      width=(52 // m_size),
+                      height=(26 // m_size))
+            g.grid(row=i, column=j)
 
 
 def show_image():
@@ -67,8 +69,8 @@ def show_image():
         panelB.configure(image=img_new_show)
         panelA.image = img_show
         panelB.image = img_new_show
-    for label in kernel_frame.grid_slaves():
-        label.destroy()
+    for g in kernel_frame.grid_slaves():
+        g.destroy()
     create_kernel_labels()
     root.update()
 
@@ -119,65 +121,192 @@ def image_swap():
     show_image()
 
 
-# TODO image noise func(repair rgb)
 def image_noise():
     global img
     mul = w1.get()
     gauss_noise = numpy.zeros(img.shape, dtype=numpy.uint8)
-    cv2.randn(gauss_noise, 128, 20)
+    mean = numpy.ones(3, dtype=numpy.uint8) * 128
+    dst = numpy.ones(3, dtype=numpy.uint8) * 20
+    cv2.randn(gauss_noise, mean, dst)
     gauss_noise = (gauss_noise * mul).astype(numpy.uint8)
     img = cv2.add(img, gauss_noise)
     show_image()
 
 
-# initialize the window toolkit along with the two image panels
+def change_language():
+    ger = {
+        "l1": "Wählen Sie den Kernel-Typ:",
+        "l2": "Wählen Sie die Kernel-Größe:",
+        "l3": "Wählen Sie die Sprache:",
+
+        "k1": "Kernel:",
+        "k2": "Input:",
+        "k3": "Output:",
+
+        "m1": "Durchschnitt",
+        "m2": "Gaussian",
+        "m3": "Rechteck",
+        "m4": "Ellipse",
+        "m5": "Trapezoid",
+        "m6": "Median",
+        "m7": "Bilateral",
+
+        "b0": "Wählen Sie ein Bild",
+        "b1": "Bild speichern als",
+        "b2": "Bilder tauschen",
+        "b5": "Rauschen hinzufügen",
+    }
+    pol = {
+        "l1": "Wybierz typ maski:",
+        "l2": "Wybierz rozmiar maski:",
+        "l3": "Wybierz język:",
+
+        "k1": "Maska:",
+        "k2": "Wejście:",
+        "k3": "Wyjście:",
+
+        "m1": "Średnia",
+        "m2": "Gaussowska",
+        "m3": "Prostokątna",
+        "m4": "Elipsa",
+        "m5": "Trapezoidalna",
+        "m6": "Medianowa",
+        "m7": "Bilateralna",
+
+        "b0": "Wybierz obraz",
+        "b1": "Zapisz obraz jako",
+        "b2": "Zamień obrazy",
+        "b5": "Dodaj szum",
+    }
+    eng = {
+        "l1": "Choose kernel type:",
+        "l2": "Choose kernel size:",
+        "l3": "Choose language:",
+
+        "k1": "Kernel:",
+        "k2": "Input:",
+        "k3": "Output:",
+
+        "m1": "Average",
+        "m2": "Gaussian",
+        "m3": "Rectangle",
+        "m4": "Eclipse",
+        "m5": "Trapezoid",
+        "m6": "Median",
+        "m7": "Bilateral",
+
+        "b0": "Select image",
+        "b1": "Save image as",
+        "b2": "Swap images",
+        "b5": "Add noise",
+    }
+    typed = lang.get()
+    if typed == 201:
+        dict1 = eng
+    elif typed == 202:
+        dict1 = pol
+    elif typed == 203:
+        dict1 = ger
+    else:
+        dict1 = eng
+
+    m1.set(dict1["m1"])
+    m2.set(dict1["m2"])
+    m3.set(dict1["m3"])
+    m4.set(dict1["m4"])
+    m5.set(dict1["m5"])
+    m6.set(dict1["m6"])
+    m7.set(dict1["m7"])
+
+    l1.set(dict1["l1"])
+    l2.set(dict1["l2"])
+    l3.set(dict1["l3"])
+
+    k1.set(dict1["k1"])
+    k2.set(dict1["k2"])
+    k3.set(dict1["k3"])
+
+    b0.set(dict1["b0"])
+    b1.set(dict1["b1"])
+    b2.set(dict1["b2"])
+    b5.set(dict1["b5"])
+
+
 root = Tk()
 root.title("Low pass filter")
-frame = Frame(root)
+
+ico = Image.open('images/ans.jpeg')
+photo = ImageTk.PhotoImage(ico)
+root.wm_iconphoto(False, photo)
+
+
 panelA = None
 panelB = None
 img = None
 img_new = None
 kernel = None
 
-# file path
 path = StringVar()
-topframe = Frame(root)
-topframe.pack(side="top", pady=20)
-# create a button,then add the button the GUI
-btn = Button(topframe, text="Select an image", command=lambda: select_image(1))
-btn.pack(side="left", fill="both", expand=1, padx="10", pady="10")
-btn2 = Button(topframe, text="Swap images", command=image_swap)
-btn2.pack(side="left", fill="both", expand=1, padx="10", pady="10")
-btn4 = Button(topframe, text="Save as", command=image_save)
-btn4.pack(side="left", fill="both", expand=1, padx="10", pady="10")
-btn3 = Button(topframe, text="Add noise", command=image_noise)
-btn3.pack(side="left", fill="both", expand=1, padx="10", pady="10")
-w1 = Scale(topframe, from_=0, resolution=0.1, to=10, orient=HORIZONTAL)
-w1.pack(side="left", fill="both", expand=1, ipadx="40", pady="10")
-w1.set(0.5)
-btn1 = Button(topframe, text="Filter", command=start)
-btn1.pack(side="left", fill="both", expand=1, padx="10", pady="10")
+b0 = StringVar()
+b1 = StringVar()
+b2 = StringVar()
+b3 = StringVar()
+b4 = StringVar()
+b5 = StringVar()
+lang = IntVar()
+l1 = StringVar()
+l2 = StringVar()
+l3 = StringVar()
+k1 = StringVar()
+k2 = StringVar()
+k3 = StringVar()
+mask_type = IntVar()
+m1 = StringVar()
+m2 = StringVar()
+m3 = StringVar()
+m4 = StringVar()
+m5 = StringVar()
+m6 = StringVar()
+m7 = StringVar()
+mask_size = IntVar()
 
+labels = [l1, l2, l3]
+
+labels2 = [k1, k2, k3]
+
+masks = [(102, m1),
+         (103, m2),
+         (105, m3),
+         (106, m4),
+         (107, m5),
+         (101, m6),
+         (104, m7)]
+
+sizes = [("3x3", 3),
+         ("5x5", 5),
+         ("7x7", 7),
+         ("9x9", 9),
+         ("11x11", 11)]
+
+buttons = [(lambda: select_image(1), b0),
+           (image_save, b1),
+           (image_swap, b2),
+           (image_noise, b5)]
+
+langs = [("English", 201, lambda: change_language()),
+         ("Polski", 202, lambda: change_language()),
+         ("Deutsch", 203, lambda: change_language())]
+
+mask_size.set(3)
+mask_size.set(5)
+mask_type.set(102)
+lang.set(201)
+
+frame = Frame(root)
+frame1 = Frame(root)
+frame1.pack(side="top", pady=20)
 frame2 = Frame(root)
 frame2.pack(side="top")
-
-l1 = Label(frame2,
-           text="Choose mask type:",
-           justify=LEFT,
-           padx=20)
-l1.pack(side=LEFT)
-l2 = Label(frame2,
-           text="Choose mask size:",
-           justify=LEFT,
-           padx=20)
-l2.pack(side=LEFT)
-l3 = Label(frame2,
-           text="Language:",
-           justify=LEFT,
-           padx=20)
-l3.pack(side=LEFT)
-
 frame3 = Frame(root)
 frame3.pack(side="top")
 frame3a = Frame(frame3)
@@ -186,59 +315,65 @@ frame3b = Frame(frame3)
 frame3b.pack(side="left", padx=20)
 frame3c = Frame(frame3)
 frame3c.pack(side="left", padx=20)
-
-
+frame4 = Frame(root)
+frame4.pack(side="top", pady=15)
 image_frame = Frame(root)
 image_frame.pack(side="top", pady=20)
 kernel_frame = Frame(image_frame)
 kernel_frame.pack(side="left", pady=20)
 
-mask_type = IntVar()
-masks = [("Average", 102),
-         ("Gaussian", 103),
-         ("Rectangle", 105),
-         ("Eclipse", 106),
-         ("Trapezoid", 107),
-         ("Median", 101),
-         ("Bilateral", 104)]
+for comm, b in buttons:
+    Button(frame1,
+           textvariable=b,
+           bg="#1976D2",
+           activeforeground="#2196F3",
+           command=comm).pack(side="left", fill="both", expand=1, padx="10", pady="10")
 
-for mask, val in masks:
+w1 = Scale(frame1, from_=0, resolution=0.1, to=10, orient="horizontal", foreground="#2196F3")
+w1.pack(side="left", fill="both", expand=1, ipadx="40", pady="10")
+w1.set(0.5)
+
+for label in labels:
+    Label(frame2,
+          textvariable=label,
+          padx=20,
+          justify="left").pack(anchor="w", side="left")
+
+for val, m in masks:
     Radiobutton(frame3a,
-                text=mask,
+                textvariable=m,
                 padx=20,
                 variable=mask_type,
-                value=val).pack(anchor=W)
-
-# Mask size
-mask_size = IntVar()
-mask_size.set(3)
-sizes = [("3x3", 3),
-         ("5x5", 5),
-         ("7x7", 7),
-         ("9x9", 9),
-         ("11x11", 11)]
+                command=start,
+                activeforeground="#2196F3",
+                value=val).pack(anchor="w")
 
 for size, val in sizes:
     Radiobutton(frame3b,
                 text=size,
                 padx=20,
                 variable=mask_size,
-                value=val).pack(anchor=W)
-lang = IntVar()
-langs = [("English", 201),
-         ("Polski", 202)]
-for t, val in langs:
+                command=start,
+                activeforeground="#2196F3",
+                value=val).pack(anchor="w")
+
+for t, val, comm in langs:
     Radiobutton(frame3c,
                 text=t,
                 padx=20,
                 variable=lang,
-                value=val).pack(anchor=W)
+                command=comm,
+                activeforeground="#2196F3",
+                value=val).pack(anchor="w")
 
-mask_size.set(5)
-mask_type.set(102)
-lang.set(201)
+for k in labels2:
+    Label(frame4,
+          textvariable=k,
+          padx=40,
+          justify="left").pack(anchor="w", padx="200", side="left")
 
-select_image(0)
+change_language()
+select_image()
 
 # kick off the GUI
 root.mainloop()
