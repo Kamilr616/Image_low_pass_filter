@@ -1,20 +1,22 @@
-import cv2
+from cv2 import add, imwrite, imread, cvtColor, getStructuringElement, COLOR_BGR2RGB, MORPH_CROSS, MORPH_RECT, \
+    MORPH_ELLIPSE, getGaussianKernel, medianBlur, bilateralFilter, filter2D, randn, resize
 
-import numpy
+from numpy import ones, sum, uint8, outer
 
-from tkinter import Button, Label, Radiobutton, Tk, StringVar, IntVar, Frame, Scale, DoubleVar
+from tkinter import Button, Label, Radiobutton, Tk, StringVar, IntVar, Frame, Scale, DoubleVar, Checkbutton
 
 from PIL import Image, ImageTk
 
 from tkinter.filedialog import askopenfilename, asksaveasfile
 
 
+# TODO with file
 def image_save():
     global img_new
     file = asksaveasfile(initialfile='image.png', defaultextension="*.png",
                          filetypes=[("All Files", "*.*"), ("PNG", "*.png")])
     if file:
-        cv2.imwrite(file.name, img_new)
+        imwrite(file.name, img_new)
 
 
 def select_image(flag=0):
@@ -24,21 +26,13 @@ def select_image(flag=0):
     else:
         path.set("images/lena.bmp")
     if len(path.get()) > 0:
-        img = cv2.imread(path.get())
+        img = imread(path.get())
+        height = 400
+        aspect_ratio = img.shape[1] / img.shape[0]
+        img = resize(img, (int(height * aspect_ratio), height))
         img_new = img
     assert img is not None, "file could not be read, check with os.path.exists()"
     start()
-
-
-def create_kernel_labels():
-    global kernel
-    m_size = mask_size.get()
-    for i in range(m_size):
-        for j in range(m_size):
-            g = Label(kernel_frame, text=f"{kernel[i][j]:.2f}", borderwidth=1, relief="solid",
-                      width=(52 // m_size),
-                      height=(26 // m_size))
-            g.grid(row=i, column=j)
 
 
 def show_image():
@@ -46,8 +40,8 @@ def show_image():
     global panelA, panelB, img, img_new, kernel
     # OpenCV represents images in BGR order; however PIL represents
     # images in RGB order, so we need to swap the channels
-    img_show = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_new_show = cv2.cvtColor(img_new, cv2.COLOR_BGR2RGB)
+    img_show = cvtColor(img, COLOR_BGR2RGB)
+    img_new_show = cvtColor(img_new, COLOR_BGR2RGB)
 
     # convert the images to PIL format...
     img_show = Image.fromarray(img_show)
@@ -56,7 +50,7 @@ def show_image():
     img_show = ImageTk.PhotoImage(img_show)
     img_new_show = ImageTk.PhotoImage(img_new_show)
     # if the panels are None, initialize them
-    if panelA is None or panelB is None or kernel is None:
+    if panelA is None or panelB is None:
         # the first panel will store our original image
         panelA = Label(image_frame, image=img_show)
         panelA.image = img_show
@@ -72,9 +66,7 @@ def show_image():
         panelB.configure(image=img_new_show)
         panelA.image = img_show
         panelB.image = img_new_show
-    for g in kernel_frame.grid_slaves():
-        g.destroy()
-    create_kernel_labels()
+    show_kernel()
     root.update()
 
 
@@ -86,35 +78,35 @@ def start():
     m_type = mask_type.get()
 
     if m_type == 102:
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (m_size, m_size))
-        kernel = kernel / numpy.sum(kernel)
+        kernel = getStructuringElement(MORPH_RECT, (m_size, m_size))
+        kernel = kernel / sum(kernel)
     if m_type == 105:
-        kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (m_size, m_size))
-        kernel = kernel / numpy.sum(kernel)
+        kernel = getStructuringElement(MORPH_CROSS, (m_size, m_size))
+        kernel = kernel / sum(kernel)
     elif m_type == 106:
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (m_size, m_size))
-        kernel = kernel / numpy.sum(kernel)
+        kernel = getStructuringElement(MORPH_ELLIPSE, (m_size, m_size))
+        kernel = kernel / sum(kernel)
     elif m_type == 107:
-        kernel = numpy.ones((m_size, m_size), dtype=numpy.uint8)
-        kernel = kernel / numpy.sum(kernel)
+        kernel = ones((m_size, m_size), dtype=uint8)
+        kernel = kernel / sum(kernel)
         kernel[0, 0] = 0
         kernel[0, -1] = 0
         kernel[-1, 0] = 0
         kernel[-1, -1] = 0
     elif m_type == 101:
-        kernel = numpy.ones((m_size, m_size), numpy.uint8)
-        img_new = cv2.medianBlur(img, m_size)
+        img_new = medianBlur(img, m_size)
     elif m_type == 103:
-        kernel = cv2.getGaussianKernel(m_size, 0)
-        kernel = numpy.outer(kernel, kernel.transpose())
+        kernel = getGaussianKernel(m_size, 0)
+        kernel = outer(kernel, kernel.transpose())
     elif m_type == 104:
-        kernel = numpy.ones((m_size, m_size), numpy.uint8)
-        img_new = cv2.bilateralFilter(img, m_size, 75, 75)
+        img_new = bilateralFilter(img, m_size, 75, 75)
 
     if m_type != 104 and m_type != 101:
-        img_new = cv2.filter2D(img, -1, kernel)
+        img_new = filter2D(img, -1, kernel)
+    else:
+        kernel = ones((m_size, m_size), uint8)
 
-    img_new = img_new.astype(numpy.uint8)
+    img_new = img_new.astype(uint8)
     show_image()
 
 
@@ -127,12 +119,12 @@ def image_swap():
 def image_noise():
     global img
     mul = w1.get()
-    gauss_noise = numpy.zeros(img.shape, dtype=numpy.uint8)
-    mean = numpy.ones(3, dtype=numpy.uint8) * 128
-    dst = numpy.ones(3, dtype=numpy.uint8) * 20
-    cv2.randn(gauss_noise, mean, dst)
-    gauss_noise = (gauss_noise * mul).astype(numpy.uint8)
-    img = cv2.add(img, gauss_noise)
+    gauss_noise = ones(img.shape, dtype=uint8)
+    mean = ones(3, dtype=uint8) * 128
+    dst = ones(3, dtype=uint8) * 20
+    randn(gauss_noise, mean, dst)
+    gauss_noise = (gauss_noise * mul).astype(uint8)
+    img = add(img, gauss_noise)
     show_image()
 
 
@@ -145,6 +137,7 @@ def change_language():
         "k1": "Ядро:",
         "k2": "Вхід:",
         "k3": "Вихід:",
+        "k4": "Фільтрація нижчих частот",
 
         "m1": "Середнє",
         "m2": "Гауссівське",
@@ -157,6 +150,7 @@ def change_language():
         "b0": "Вибрати зображення",
         "b1": "Зберегти зображення як",
         "b2": "Поміняти зображення",
+        "b3": "Показати ядро",
         "b5": "Додати шум",
     }
     esp = {
@@ -167,6 +161,7 @@ def change_language():
         "k1": "Kernel:",
         "k2": "Entrada:",
         "k3": "Salida:",
+        "k4": "Filtrado de paso bajo",
 
         "m1": "Promedio",
         "m2": "Gaussiano",
@@ -179,6 +174,7 @@ def change_language():
         "b0": "Seleccionar imagen",
         "b1": "Guardar imagen como",
         "b2": "Intercambiar imagen",
+        "b3": "Mostrar el kernel",
         "b5": "Agregar ruido",
     }
 
@@ -190,6 +186,7 @@ def change_language():
         "k1": "Kern:",
         "k2": "Eingabe:",
         "k3": "Ausgabe:",
+        "k4": "Tiefpassfilterung",
 
         "m1": "Durchschnitt",
         "m2": "Gauß",
@@ -202,7 +199,8 @@ def change_language():
         "b0": "Bild auswählen",
         "b1": "Bild speichern unter",
         "b2": "Bild austauschen",
-        "b5": "Rauschen hinzufügen",
+        "b3": "Kernel anzeigen",
+        "b5": "Rauschen hinzufügen"
     }
 
     pol = {
@@ -213,6 +211,7 @@ def change_language():
         "k1": "Maska:",
         "k2": "Wejście:",
         "k3": "Wyjście:",
+        "k4": "Filtracja dolnoprzepustowa",
 
         "m1": "Średnia",
         "m2": "Gaussowska",
@@ -225,6 +224,7 @@ def change_language():
         "b0": "Wybierz obraz",
         "b1": "Zapisz obraz jako",
         "b2": "Zamień obraz",
+        "b3": "Wyświetl maskę",
         "b5": "Dodaj szum",
     }
     eng = {
@@ -235,6 +235,7 @@ def change_language():
         "k1": "Kernel:",
         "k2": "Input:",
         "k3": "Output:",
+        "k4": "Low-pass filtering",
 
         "m1": "Average",
         "m2": "Gaussian",
@@ -247,7 +248,8 @@ def change_language():
         "b0": "Select image",
         "b1": "Save image as",
         "b2": "Swap image",
-        "b5": "Add noise",
+        "b3": "Display kernel",
+        "b5": "Add noise"
     }
     typed = lang.get()
     if typed == 201:
@@ -263,6 +265,7 @@ def change_language():
     else:
         dict1 = eng
 
+    root.title(dict1["k4"])
     m1.set(dict1["m1"])
     m2.set(dict1["m2"])
     m3.set(dict1["m3"])
@@ -275,20 +278,19 @@ def change_language():
     l2.set(dict1["l2"])
     l3.set(dict1["l3"])
 
-    k1.set(dict1["k1"])
-    k2.set(dict1["k2"])
-    k3.set(dict1["k3"])
+#    k1.set(dict1["k1"])
+#    k2.set(dict1["k2"])
+#    k3.set(dict1["k3"])
 
     b0.set(dict1["b0"])
     b1.set(dict1["b1"])
     b2.set(dict1["b2"])
+    b3.set(dict1["b3"])
     b5.set(dict1["b5"])
 
 
 def create_widgets():
     labels = [l1, l2, l3]
-
-    labels2 = [k1, k2, k3]
 
     masks = [(102, m1),
              (103, m2),
@@ -320,6 +322,7 @@ def create_widgets():
     mask_type.set(102)
     lang.set(201)
     w1.set(0.5)
+    w2.set(0)
 
     for comm, b in buttons:
         Button(frame1,
@@ -328,8 +331,14 @@ def create_widgets():
                activeforeground="#2196F3",
                command=comm).pack(side="left", fill="both", expand=1, padx="10", pady="10")
 
-    Scale(frame1, from_=0, resolution=0.1, to=10, orient="horizontal", background="#1976D2", length="120", highlightcolor="#2196F3", variable=w1).pack(side="left", fill="both", expand=1, ipadx="10", pady="10")
+    Scale(frame1, from_=0.05, resolution=0.05, to=5, orient="horizontal", background="#1976D2", length="120",
+          highlightcolor="#2196F3", variable=w1).pack(side="left", fill="both", expand=1, ipadx="10", pady="10")
 
+    Checkbutton(frame1,
+                textvariable=b3,
+                bg="#1976D2",
+                activeforeground="#2196F3",
+                variable=w2).pack(side="left", fill="both", expand=1, padx="10", pady="10")
     for label in labels:
         Label(frame2,
               textvariable=label,
@@ -363,16 +372,25 @@ def create_widgets():
                     activeforeground="#2196F3",
                     value=val).pack(anchor="w")
 
-    for k in labels2:
-        Label(frame4,
-              textvariable=k,
-              padx=40,
-              justify="left").pack(anchor="w", padx="200", side="left")
+
+def show_kernel():
+    global kernel
+    if kernel_frame is not None:
+        for g in kernel_frame.grid_slaves():
+            g.grid_remove()
+    if w2.get():
+        m_size = mask_size.get()
+        for i in range(m_size):
+            for j in range(m_size):
+                g = Label(kernel_frame, text=f"{kernel[i][j]:.2f}", borderwidth=1, relief="solid",
+                          width=(52 // m_size),
+                          height=(26 // m_size))
+                g.grid(row=i, column=j)
 
 
 root = Tk()
-root.title("Low pass filter")
-root.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('images/ans.jpeg')))
+root.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('ans.ico')))
+root.minsize(800, 600)
 
 panelA = None
 panelB = None
@@ -404,8 +422,8 @@ m6 = StringVar()
 m7 = StringVar()
 mask_size = IntVar()
 w1 = DoubleVar()
+w2 = IntVar()
 
-frame = Frame(root)
 frame1 = Frame(root)
 frame1.pack(side="top", pady=20)
 frame2 = Frame(root)
@@ -423,7 +441,7 @@ frame4.pack(side="top", pady=15)
 image_frame = Frame(root)
 image_frame.pack(side="top", pady=20)
 kernel_frame = Frame(image_frame)
-kernel_frame.pack(side="left", pady=20)
+kernel_frame.pack(side="right", pady=20)
 
 create_widgets()
 change_language()
