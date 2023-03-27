@@ -1,7 +1,11 @@
 import cv2
+
 import numpy
-from tkinter import Button, Label, Radiobutton, Tk, StringVar, IntVar, Frame, Scale
+
+from tkinter import Button, Label, Radiobutton, Tk, StringVar, IntVar, Frame, Scale, DoubleVar
+
 from PIL import Image, ImageTk
+
 from tkinter.filedialog import askopenfilename, asksaveasfile
 
 
@@ -23,7 +27,6 @@ def select_image(flag=0):
         img = cv2.imread(path.get())
         img_new = img
     assert img is not None, "file could not be read, check with os.path.exists()"
-    # show_image()
     start()
 
 
@@ -282,12 +285,94 @@ def change_language():
     b5.set(dict1["b5"])
 
 
+def create_widgets():
+    labels = [l1, l2, l3]
+
+    labels2 = [k1, k2, k3]
+
+    masks = [(102, m1),
+             (103, m2),
+             (105, m3),
+             (106, m4),
+             (107, m5),
+             (101, m6),
+             (104, m7)]
+
+    sizes = [("3x3", 3),
+             ("5x5", 5),
+             ("7x7", 7),
+             ("9x9", 9),
+             ("11x11", 11)]
+
+    buttons = [(lambda: select_image(1), b0),
+               (image_save, b1),
+               (image_swap, b2),
+               (image_noise, b5)]
+
+    langs = [("English", 201, lambda: change_language()),
+             ("Polski", 202, lambda: change_language()),
+             ("Deutsch", 203, lambda: change_language()),
+             ("Español", 204, lambda: change_language()),
+             ("Українська", 205, lambda: change_language())]
+
+    mask_size.set(3)
+    mask_size.set(5)
+    mask_type.set(102)
+    lang.set(201)
+    w1.set(0.5)
+
+    for comm, b in buttons:
+        Button(frame1,
+               textvariable=b,
+               bg="#1976D2",
+               activeforeground="#2196F3",
+               command=comm).pack(side="left", fill="both", expand=1, padx="10", pady="10")
+
+    Scale(frame1, from_=0, resolution=0.1, to=10, orient="horizontal", background="#1976D2", length="120", highlightcolor="#2196F3", variable=w1).pack(side="left", fill="both", expand=1, ipadx="10", pady="10")
+
+    for label in labels:
+        Label(frame2,
+              textvariable=label,
+              padx=20,
+              justify="left").pack(anchor="w", side="left")
+
+    for val, m in masks:
+        Radiobutton(frame3a,
+                    textvariable=m,
+                    padx=20,
+                    variable=mask_type,
+                    command=start,
+                    activeforeground="#2196F3",
+                    value=val).pack(anchor="w")
+
+    for size, val in sizes:
+        Radiobutton(frame3b,
+                    text=size,
+                    padx=20,
+                    variable=mask_size,
+                    command=start,
+                    activeforeground="#2196F3",
+                    value=val).pack(anchor="w")
+
+    for t, val, comm in langs:
+        Radiobutton(frame3c,
+                    text=t,
+                    padx=20,
+                    variable=lang,
+                    command=comm,
+                    activeforeground="#2196F3",
+                    value=val).pack(anchor="w")
+
+    for k in labels2:
+        Label(frame4,
+              textvariable=k,
+              padx=40,
+              justify="left").pack(anchor="w", padx="200", side="left")
+
+
 root = Tk()
 root.title("Low pass filter")
-
-ico = Image.open('images/ans.jpeg')
-photo = ImageTk.PhotoImage(ico)
-root.wm_iconphoto(False, photo)
+root.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('images/ans.jpeg')))
 
 panelA = None
 panelB = None
@@ -318,40 +403,7 @@ m5 = StringVar()
 m6 = StringVar()
 m7 = StringVar()
 mask_size = IntVar()
-
-labels = [l1, l2, l3]
-
-labels2 = [k1, k2, k3]
-
-masks = [(102, m1),
-         (103, m2),
-         (105, m3),
-         (106, m4),
-         (107, m5),
-         (101, m6),
-         (104, m7)]
-
-sizes = [("3x3", 3),
-         ("5x5", 5),
-         ("7x7", 7),
-         ("9x9", 9),
-         ("11x11", 11)]
-
-buttons = [(lambda: select_image(1), b0),
-           (image_save, b1),
-           (image_swap, b2),
-           (image_noise, b5)]
-
-langs = [("English", 201, lambda: change_language()),
-         ("Polski", 202, lambda: change_language()),
-         ("Deutsch", 203, lambda: change_language()),
-         ("Español", 204, lambda: change_language()),
-         ("Українська", 205, lambda: change_language())]
-
-mask_size.set(3)
-mask_size.set(5)
-mask_type.set(102)
-lang.set(201)
+w1 = DoubleVar()
 
 frame = Frame(root)
 frame1 = Frame(root)
@@ -373,56 +425,7 @@ image_frame.pack(side="top", pady=20)
 kernel_frame = Frame(image_frame)
 kernel_frame.pack(side="left", pady=20)
 
-for comm, b in buttons:
-    Button(frame1,
-           textvariable=b,
-           bg="#1976D2",
-           activeforeground="#2196F3",
-           command=comm).pack(side="left", fill="both", expand=1, padx="10", pady="10")
-
-w1 = Scale(frame1, from_=0, resolution=0.1, to=10, orient="horizontal", background="#1976D2")
-w1.pack(side="left", fill="both", expand=1, ipadx="40", pady="10")
-w1.set(0.5)
-
-for label in labels:
-    Label(frame2,
-          textvariable=label,
-          padx=20,
-          justify="left").pack(anchor="w", side="left")
-
-for val, m in masks:
-    Radiobutton(frame3a,
-                textvariable=m,
-                padx=20,
-                variable=mask_type,
-                command=start,
-                activeforeground="#2196F3",
-                value=val).pack(anchor="w")
-
-for size, val in sizes:
-    Radiobutton(frame3b,
-                text=size,
-                padx=20,
-                variable=mask_size,
-                command=start,
-                activeforeground="#2196F3",
-                value=val).pack(anchor="w")
-
-for t, val, comm in langs:
-    Radiobutton(frame3c,
-                text=t,
-                padx=20,
-                variable=lang,
-                command=comm,
-                activeforeground="#2196F3",
-                value=val).pack(anchor="w")
-
-for k in labels2:
-    Label(frame4,
-          textvariable=k,
-          padx=40,
-          justify="left").pack(anchor="w", padx="200", side="left")
-
+create_widgets()
 change_language()
 select_image()
 
