@@ -7,29 +7,30 @@ from tkinter import Button, Label, Radiobutton, Tk, StringVar, IntVar, Frame, Sc
 
 from PIL import Image, ImageTk
 
-from tkinter.filedialog import askopenfilename, asksaveasfile
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 
-# TODO with file
 def image_save():
     global img_new
-    file = asksaveasfile(initialfile='image.png', defaultextension="*.png",
-                         filetypes=[("All Files", "*.*"), ("PNG", "*.png")])
-    if file:
-        imwrite(file.name, img_new)
+    file_path = asksaveasfilename(initialfile='image.png', defaultextension="*.png",
+                                  filetypes=[("All Files", "*.*"), ("PNG", "*.png")])
+    if file_path:
+        with open(file_path, 'wb') as file:
+            imwrite(file_path, img_new)
+    assert file_path is not None, "file could not be write, check with os.path.exists()"
 
 
 def select_image(flag=0):
     global img, img_new
     if flag == 1:
-        path.set(askopenfilename())
+        file_path = askopenfilename()
     else:
-        path.set("images/lena.bmp")
-    if len(path.get()) > 0:
-        img = imread(path.get())
+        file_path = "images/lena.bmp"
+    if file_path:
+        with open(file_path, "rb") as file:
+            img = imread(file_path)
         height = 400
-        aspect_ratio = img.shape[1] / img.shape[0]
-        img = resize(img, (int(height * aspect_ratio), height))
+        img = resize(img, (int(height * (img.shape[1] / img.shape[0])), height))
         img_new = img
     assert img is not None, "file could not be read, check with os.path.exists()"
     start()
@@ -375,10 +376,10 @@ def create_widgets():
 
 def show_kernel():
     global kernel
-    if kernel_frame is not None:
+    if kernel_frame.slaves is not None:
         for g in kernel_frame.grid_slaves():
             g.grid_remove()
-    if w2.get():
+    if w2.get() and kernel is not None:
         m_size = mask_size.get()
         for i in range(m_size):
             for j in range(m_size):
