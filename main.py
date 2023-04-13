@@ -10,7 +10,6 @@ from PIL import Image, ImageTk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 
-# class for creating a graphical user interface for image manipulation
 class Application(Frame):
     # constructor
     def __init__(self, master=None):
@@ -18,7 +17,7 @@ class Application(Frame):
         self.master = master
         self.pack()
         self.master.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('ans.ico')))
-        self.master.minsize(900, 600)
+        self.master.minsize(800, 300)
         self.panelA = None
         self.panelB = None
         self.img = None
@@ -114,7 +113,7 @@ class Application(Frame):
                    activeforeground="#2196F3",
                    command=comm).pack(side="left", fill="both", expand=1, padx="10", pady="10")
 
-        Scale(self.frame1, from_=0.05, resolution=0.05, to=5, orient="horizontal", background="#1976D2", length="120",
+        Scale(self.frame1, from_=0.01, resolution=0.01, to=3, orient="horizontal", background="#1976D2", length="120",
               highlightcolor="#2196F3", variable=self.w1).pack(side="left", fill="both", expand=1, ipadx="10",
                                                                pady="10")
 
