@@ -1,7 +1,7 @@
 from cv2 import add, imwrite, imread, cvtColor, getStructuringElement, COLOR_BGR2RGB, MORPH_CROSS, MORPH_RECT, \
     MORPH_ELLIPSE, getGaussianKernel, medianBlur, bilateralFilter, filter2D, randn, resize
 
-from numpy import ones, sum, uint8, outer
+from numpy import ones, sum, uint8, outer, random, copy, ceil
 
 from tkinter import Button, Label, Radiobutton, Tk, StringVar, IntVar, Frame, Scale, DoubleVar, Checkbutton
 
@@ -91,6 +91,7 @@ class Application(Frame):
         buttons = [(lambda: self.select_image(1), self.b0),
                    (self.image_save, self.b1),
                    (self.image_swap, self.b2),
+                   (self.start, self.b3),
                    (self.image_noise, self.b5)]
 
         langs = [("English", 201, lambda: self.change_language()),
@@ -117,11 +118,6 @@ class Application(Frame):
               highlightcolor="#2196F3", variable=self.w1).pack(side="left", fill="both", expand=1, ipadx="10",
                                                                pady="10")
 
-        Checkbutton(self.frame1,
-                    textvariable=self.b3,
-                    bg="#1976D2",
-                    activeforeground="#2196F3",
-                    variable=self.w2).pack(side="left", fill="both", expand=1, padx="10", pady="10")
         for label in labels:
             Label(self.frame2,
                   textvariable=label,
@@ -132,7 +128,7 @@ class Application(Frame):
                         textvariable=m,
                         padx=20,
                         variable=self.mask_type,
-                        command=self.start,
+                        command="",
                         activeforeground="#2196F3",
                         value=val).pack(anchor="w")
 
@@ -141,7 +137,7 @@ class Application(Frame):
                         text=size,
                         padx=20,
                         variable=self.mask_size,
-                        command=self.start,
+                        command="",
                         activeforeground="#2196F3",
                         value=val).pack(anchor="w")
 
@@ -287,7 +283,7 @@ class Application(Frame):
             "b0": "Select image",
             "b1": "Save image as",
             "b2": "Swap image",
-            "b3": "Display kernel",
+            "b3": "Filter",
             "b5": "Add noise"
         }
         typed = self.lang.get()
@@ -331,10 +327,23 @@ class Application(Frame):
         mul = self.w1.get()
         gauss_noise = ones(self.img.shape, dtype=uint8)
         mean = ones(3, dtype=uint8) * 128
-        dst = ones(3, dtype=uint8) * 20
+        dst = ones(3, dtype=uint8) * 10
         randn(gauss_noise, mean, dst)
         gauss_noise = (gauss_noise * mul).astype(uint8)
         self.img = add(self.img, gauss_noise)
+        self.show_image()
+
+    def image_noise_old(self):
+
+        row, col, ch = self.img.shape
+        noise_typ = "gauss"
+        if noise_typ == "gauss":
+            mean = 0
+            var = 0.1
+            sigma = var ** 0.5
+            gauss = random.normal(mean, sigma, (row, col, ch))
+            gauss = gauss.reshape(row, col, ch).astype(uint8)
+            self.img = add(self.img, gauss)
         self.show_image()
 
     def start(self):
