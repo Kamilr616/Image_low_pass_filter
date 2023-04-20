@@ -1,6 +1,5 @@
 from numpy import ones, sum, uint8, outer
 
-
 from cv2 import getStructuringElement, MORPH_CROSS, MORPH_RECT, MORPH_ELLIPSE, getGaussianKernel, multiply
 
 
@@ -49,6 +48,7 @@ class Kernel:
                 return self._kernel
         else:
             raise ValueError('No kernel type')
+
     def _create_kernel(self, kernel_type, size):
         if size:
             if kernel_type == 102:

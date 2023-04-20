@@ -1,8 +1,6 @@
-from app import *
-
-
 from tkinter import Tk
 
+from app import *
 
 def main():
     root = Tk()

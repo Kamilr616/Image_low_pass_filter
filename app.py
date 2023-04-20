@@ -148,10 +148,11 @@ class Application(Frame):
                    command=comm).pack(side="left", fill="both", expand=1, padx="10", pady="10")
 
         Scale(self.frame1, from_=0.01, resolution=0.01, to=1, orient="horizontal", background="#1976D2", length="120",
-              highlightcolor="#2196F3", variable=self.w1).pack(side="left", fill="both", expand=1, ipadx="10",
+              highlightcolor="#2196F3", variable=self.w1).pack(side="left", fill="both",
+                                                               expand=1, ipadx="10",
                                                                pady="10")
-        Checkbutton(self.frame1, textvariable=self.b6, variable=self.w2, bg="#1976D2", activeforeground="#2196F3").pack(
-            side="left", fill="both", expand=1, padx="10", pady="10")
+        Checkbutton(self.frame1, textvariable=self.b6, command=self.plot_noise, variable=self.w2, bg="#1976D2",
+                    activeforeground="#2196F3").pack(side="left", fill="both", expand=1, padx="10", pady="10")
 
         for label in labels:
             Label(self.frame2,
@@ -429,7 +430,6 @@ class Application(Frame):
         self.show_image()
 
     def image_noise(self):
-        self.noise.set_size(self.img.shape)
         self.noise.set_mul(self.w1.get())
         self.img_new = self.noise.image_noise(self.img)
         self.show_image()
@@ -498,7 +498,8 @@ class Application(Frame):
             self.img = resize(self.img, (int(height * (self.img.shape[1] / self.img.shape[0])), height))
             self.img_new = self.img
         assert self.img is not None, "file could not be read, check with os.path.exists()"
-        self.start()
+        self.show_image()
+        self.noise.set_size(self.img.shape)
 
     def show_image(self):
         # OpenCV represents images in BGR order; however PIL represents
@@ -529,4 +530,3 @@ class Application(Frame):
             self.panelB.configure(image=img_new_show)
             self.panelA.image = img_show
             self.panelB.image = img_new_show
-        self.update()
