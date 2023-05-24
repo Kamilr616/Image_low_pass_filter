@@ -29,8 +29,8 @@ FOREGROUND_COLOR = "#2196F3"
 BACKGORUND_COLOR = "#1976D2"
 FONT_FAMILY = "Arial"
 FONT_SIZE = 12
-FONT_SIZE_KERNEL = 9
-PLOT_SIZE = (3.5, 3)
+FONT_SIZE_KERNEL = 8
+PLOT_SIZE = (3.8, 3)
 IMG_SIZE = 300
 
 
@@ -38,6 +38,7 @@ class Application(Frame):
     # constructor
     def __init__(self, master=None):
         super().__init__(master)
+        self.add_noise_button = None
         self.master = master
         self.pack()
         self.master.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('ans.ico')))
@@ -98,21 +99,24 @@ class Application(Frame):
         self.filemenu = Menu(self.mainmenu, tearoff=0)
         self.filemenu.add_command(command=lambda: self.select_image(1))
         self.filemenu.add_command(command=self.image_save)
-        self.filemenu.add_command( command=self.image_swap)
+        self.filemenu.add_command(command=self.image_swap)
         self.filemenu.add_separator()
-        self.filemenu.add_command(label="Exit", command=self.master.destroy)
-        self.mainmenu.add_cascade(label="File", menu=self.filemenu)
+        self.filemenu.add_command(command=self.master.destroy)
+        self.mainmenu.add_cascade(menu=self.filemenu)
 
         # Menu 2
         self.noise_menu = Menu(self.mainmenu, tearoff=0)
-        self.noise_menu.add_command(label="Add noise", command=self.image_noise)
-        self.noise_menu.add_checkbutton(label="Show noise", variable=self.w2, command=self.plot_noise)
-        self.mainmenu.add_cascade(label="Noise", menu=self.noise_menu)
+        self.noise_menu.add_radiobutton(variable=self.noise_type, value=301, activeforeground=FOREGROUND_COLOR,
+                                        command=self.set_noise_type)
+        self.noise_menu.add_radiobutton(variable=self.noise_type, value=302, activeforeground=FOREGROUND_COLOR,
+                                        command=self.set_noise_type)
+        self.noise_menu.add_separator()
+        self.noise_menu.add_checkbutton(variable=self.w2, command=self.plot_noise)
+        self.mainmenu.add_cascade(menu=self.noise_menu)
 
         # Menu 3
         self.menu_3 = Menu(self.mainmenu, tearoff=0)
-        self.menu_3.add_command(label="Documentation")
-        self.mainmenu.add_cascade(label="Menu3", menu=self.menu_3)
+        self.mainmenu.add_cascade(menu=self.menu_3)
 
         self.frame0 = Frame(self.master)
         self.frame1 = Frame(master=self.frame0, width=300)
@@ -147,13 +151,10 @@ class Application(Frame):
         self.select_image()
         self.start()
         self.plot_noise()
+        self.plot_kernel()
 
     # function for creating widgets
     def create_widgets(self):
-        noises = [(301, self.n1),
-                  (302, self.n2),
-                  (301, self.n3)]
-
         masks = [(102, self.m1),
                  (103, self.m2),
                  (105, self.m3),
@@ -216,21 +217,15 @@ class Application(Frame):
                         activeforeground=FOREGROUND_COLOR,
                         value=val).pack(anchor="w")
 
-        for val, l in noises:
-            Radiobutton(self.frame1_label4,
-                        textvariable=l,
-                        padx=PADX_WIDGET,
-                        pady=PADY_WIDGET,
-                        variable=self.noise_type,
-                        command=self.set_noise_type,
-                        activeforeground=FOREGROUND_COLOR,
-                        value=val).pack(anchor="w")
-
         self.noise_scale = Scale(self.frame1, label="Noise scale", from_=0.01, resolution=0.01, to=1,
                                  orient="horizontal",
                                  background=BACKGORUND_COLOR, length="140", highlightcolor=FOREGROUND_COLOR,
                                  variable=self.w1)
         self.noise_scale.pack(side="top", expand=1, padx=PADX_WIDGET, pady=PADY_WIDGET)
+        self.add_noise_button = Button(self.frame1, textvariable=self.b5, bg=BACKGORUND_COLOR,
+                                       activeforeground=FOREGROUND_COLOR, command=self.image_noise)
+
+        self.add_noise_button.pack(side="top", expand=1, padx=PADX_WIDGET, pady=PADY_WIDGET)
 
         self.start_button = Button(self.frame1, textvariable=self.b3, bg=BACKGORUND_COLOR,
                                    activeforeground=FOREGROUND_COLOR, command=self.start)
@@ -410,16 +405,19 @@ class Application(Frame):
             "b0": "Select image",
             "b1": "Save image as",
             "b2": "Swap image",
+            "b10": "Exit",
+
             "b3": "Filter",
             "b5": "Add noise",
             "b6": "Show noise histogram",
+
             "b7": "File",
             "b8": "Noise",
             "b9": "Language",
 
+
             "n1": "Gaussian",
             "n2": "Salt and pepper",
-            "n3": "Other",
 
             "h1": "Pixel value",
             "h2": "Density",
@@ -448,27 +446,25 @@ class Application(Frame):
         self.m6.set(dict1["m6"])
         self.m7.set(dict1["m7"])
 
-        self.n1.set(dict1["n1"])
-        self.n2.set(dict1["n2"])
-        self.n3.set(dict1["n3"])
-
         self.h1.set(dict1["h1"])
         self.h2.set(dict1["h2"])
         self.h3.set(dict1["h3"])
 
         self.b3.set(dict1["b3"])
+        self.b5.set(dict1["b5"])
 
-        # self.mainmenu.entryconfigure(0, label=dict1["b7"])
-        # self.mainmenu.entryconfigure(1, label=dict1["b8"])
-        # self.mainmenu.entryconfigure(2, label=dict1["b9"])
+        self.mainmenu.entryconfigure(1, label=dict1["b7"])
+        self.mainmenu.entryconfigure(2, label=dict1["b8"])
+        self.mainmenu.entryconfigure(3, label=dict1["b9"])
 
         self.filemenu.entryconfigure(0, label=dict1["b0"])
         self.filemenu.entryconfigure(1, label=dict1["b1"])
         self.filemenu.entryconfigure(2, label=dict1["b2"])
-        # self.filemenu.entryconfigure(0, label=dict1["b9"]) #exit
+        self.filemenu.entryconfigure(4, label=dict1["b10"])
 
-        self.noise_menu.entryconfigure(0, label=dict1["b5"])
-        self.noise_menu.entryconfigure(1, label=dict1["b6"])
+        self.noise_menu.entryconfigure(0, label=dict1["n1"])
+        self.noise_menu.entryconfigure(1, label=dict1["n2"])
+        self.noise_menu.entryconfigure(3, label=dict1["b6"])
 
         self.frame1_label1.configure(text=dict1["l1"])
         self.frame1_label2.configure(text=dict1["l2"])
@@ -522,7 +518,6 @@ class Application(Frame):
         else:
             self.img_new = filter2D(self.img, -1, self.kernel.get_real_kernel()).astype(uint8)
         self.show_image()
-        self.plot_kernel()
 
     def image_save(self):
         file_path = asksaveasfilename(initialdir=getcwd() + "/images/", initialfile='new_image.png',
