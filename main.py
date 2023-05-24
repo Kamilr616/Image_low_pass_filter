@@ -2,6 +2,7 @@ from tkinter import Tk
 
 from app import *
 
+
 def main():
     root = Tk()
     app = Application(master=root)

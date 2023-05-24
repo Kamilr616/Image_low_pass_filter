@@ -2,7 +2,8 @@ from cv2 import imwrite, imread, cvtColor, COLOR_BGR2RGB, medianBlur, filter2D, 
 
 from os import getcwd
 
-from tkinter import Button, Label, Radiobutton, StringVar, IntVar, Frame, Scale, DoubleVar, Checkbutton, font
+from tkinter import Button, Label, Radiobutton, StringVar, IntVar, Frame, Scale, DoubleVar, Checkbutton, font, Menu, \
+    LabelFrame
 
 from PIL import Image, ImageTk
 
@@ -19,6 +20,18 @@ from pandas import DataFrame
 from kernel import *
 
 from noise import *
+
+PADX_FRAME = 8
+PADY_FRAME = 4
+PADX_WIDGET = 4
+PADY_WIDGET = 2
+FOREGROUND_COLOR = "#2196F3"
+BACKGORUND_COLOR = "#1976D2"
+FONT_FAMILY = "Arial"
+FONT_SIZE = 12
+FONT_SIZE_KERNEL = 9
+PLOT_SIZE = (3.5, 3)
+IMG_SIZE = 300
 
 
 class Application(Frame):
@@ -37,6 +50,11 @@ class Application(Frame):
         self.panelD = None
         self.img = None
         self.img_new = None
+
+        self.mask_box = None
+        self.start_button = None
+        self.noise_scale = None
+
         self.noise = Noise()
         self.kernel = Kernel()
         self.noise_type = IntVar()
@@ -73,39 +91,68 @@ class Application(Frame):
         self.mask_size = IntVar()
         self.w1 = DoubleVar()
         self.w2 = IntVar()
-        self.frame1 = Frame(self.master)
-        self.frame1.pack(side="top", pady=20)
-        self.frame2 = Frame(self.master)
-        self.frame2.pack(side="top")
-        self.frame3 = Frame(self.master)
-        self.frame3.pack(side="top")
-        self.frame3a = Frame(self.frame3)
-        self.frame3a.pack(side="left", padx=20)
-        self.frame3b = Frame(self.frame3)
-        self.frame3b.pack(side="left", padx=20)
-        self.frame3c = Frame(self.frame3)
-        self.frame3c.pack(side="left", padx=20)
-        self.frame3d = Frame(self.frame3)
-        self.frame3d.pack(side="left", padx=20)
-        self.frame4 = Frame(self.master)
-        self.frame4.pack(side="top", pady=15)
-        self.image_frame = Frame(self.master)
-        self.image_frame.pack(side="top", pady=10)
-        self.kernel_frame = Frame(self.image_frame)
-        self.kernel_frame.pack(side="right", pady=10)
-        self.noise_frame = Frame(self.image_frame)
-        self.noise_frame.pack(side="left", pady=10)
+
+        self.mainmenu = Menu(self.master)
+        self.master.config(menu=self.mainmenu)
+        # Menu 1
+        self.filemenu = Menu(self.mainmenu, tearoff=0)
+        self.filemenu.add_command(command=lambda: self.select_image(1))
+        self.filemenu.add_command(command=self.image_save)
+        self.filemenu.add_command( command=self.image_swap)
+        self.filemenu.add_separator()
+        self.filemenu.add_command(label="Exit", command=self.master.destroy)
+        self.mainmenu.add_cascade(label="File", menu=self.filemenu)
+
+        # Menu 2
+        self.noise_menu = Menu(self.mainmenu, tearoff=0)
+        self.noise_menu.add_command(label="Add noise", command=self.image_noise)
+        self.noise_menu.add_checkbutton(label="Show noise", variable=self.w2, command=self.plot_noise)
+        self.mainmenu.add_cascade(label="Noise", menu=self.noise_menu)
+
+        # Menu 3
+        self.menu_3 = Menu(self.mainmenu, tearoff=0)
+        self.menu_3.add_command(label="Documentation")
+        self.mainmenu.add_cascade(label="Menu3", menu=self.menu_3)
+
+        self.frame0 = Frame(self.master)
+        self.frame1 = Frame(master=self.frame0, width=300)
+
+        self.frame1_label1 = LabelFrame(self.frame1)
+        self.frame1_label2 = LabelFrame(self.frame1)
+        self.frame1_label3 = LabelFrame(self.frame1)
+        self.frame1_label4 = LabelFrame(self.frame1)
+
+        self.frame2 = Frame(self.frame0)
+        self.frame2a = Frame(self.frame2)
+        self.frame2b = Frame(self.frame2)
+
+        self.frame2a1 = Frame(self.frame2a)
+        self.frame2a2 = Frame(self.frame2a)
+        self.frame2b1 = Frame(self.frame2b)
+        self.frame2b2 = Frame(self.frame2b)
+
+        self.frame0.pack(side="top", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame1.pack(side="left", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame2.pack(side="left", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame2a.pack(side="top", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame2b.pack(side="top", pady=PADY_FRAME, padx=PADX_FRAME)
+
+        self.frame2a1.pack(side="left", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame2a2.pack(side="right", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame2b1.pack(side="left", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame2b2.pack(side="right", pady=PADY_FRAME, padx=PADX_FRAME)
+
         self.create_widgets()
         self.change_language()
         self.select_image()
+        self.start()
+        self.plot_noise()
 
     # function for creating widgets
     def create_widgets(self):
-        labels = [self.l1, self.l2, self.l3, self.l4]
-
         noises = [(301, self.n1),
                   (302, self.n2),
-                  (303, self.n3)]
+                  (301, self.n3)]
 
         masks = [(102, self.m1),
                  (103, self.m2),
@@ -120,12 +167,6 @@ class Application(Frame):
                  ("9x9", 9),
                  ("11x11", 11)]
 
-        buttons = [(lambda: self.select_image(1), self.b0),
-                   (self.image_save, self.b1),
-                   (self.image_swap, self.b2),
-                   (self.start, self.b3),
-                   (self.image_noise, self.b5)]
-
         langs = [("English", 201, lambda: self.change_language()),
                  ("Polski", 202, lambda: self.change_language()),
                  ("Deutsch", 203, lambda: self.change_language()),
@@ -138,63 +179,62 @@ class Application(Frame):
         self.noise_type.set(301)
         self.lang.set(201)
         self.w1.set(0.25)
-        self.w2.set(0)
+        self.w2.set(1)
 
-        for comm, b in buttons:
-            Button(self.frame1,
-                   textvariable=b,
-                   bg="#1976D2",
-                   activeforeground="#2196F3",
-                   command=comm).pack(side="left", fill="both", expand=1, padx="10", pady="10")
-
-        Scale(self.frame1, from_=0.01, resolution=0.01, to=1, orient="horizontal", background="#1976D2", length="120",
-              highlightcolor="#2196F3", variable=self.w1).pack(side="left", fill="both",
-                                                               expand=1, ipadx="10",
-                                                               pady="10")
-        Checkbutton(self.frame1, textvariable=self.b6, command=self.plot_noise, variable=self.w2, bg="#1976D2",
-                    activeforeground="#2196F3").pack(side="left", fill="both", expand=1, padx="10", pady="10")
-
-        for label in labels:
-            Label(self.frame2,
-                  textvariable=label,
-                  padx=20,
-                  justify="left").pack(anchor="w", side="left")
+        self.frame1_label1.pack(side="top", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame1_label2.pack(side="top", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame1_label3.pack(side="top", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame1_label4.pack(side="top", pady=PADY_FRAME, padx=PADX_FRAME)
 
         for val, m in masks:
-            Radiobutton(self.frame3a,
+            Radiobutton(self.frame1_label1,
                         textvariable=m,
-                        padx=20,
+                        padx=PADX_WIDGET,
+                        pady=PADY_WIDGET,
                         variable=self.mask_type,
                         command=self.set_kernel_type,
-                        activeforeground="#2196F3",
+                        activeforeground=FOREGROUND_COLOR,
                         value=val).pack(anchor="w")
 
         for size, val in sizes:
-            Radiobutton(self.frame3b,
+            Radiobutton(self.frame1_label2,
                         text=size,
-                        padx=20,
+                        padx=PADX_WIDGET,
+                        pady=PADY_WIDGET,
                         variable=self.mask_size,
                         command=self.set_kernel_size,
-                        activeforeground="#2196F3",
+                        activeforeground=FOREGROUND_COLOR,
                         value=val).pack(anchor="w")
 
         for t, val, comm in langs:
-            Radiobutton(self.frame3c,
+            Radiobutton(self.frame1_label3,
                         text=t,
-                        padx=20,
+                        padx=PADX_WIDGET,
+                        pady=PADY_WIDGET,
                         variable=self.lang,
                         command=comm,
-                        activeforeground="#2196F3",
+                        activeforeground=FOREGROUND_COLOR,
                         value=val).pack(anchor="w")
 
         for val, l in noises:
-            Radiobutton(self.frame3d,
+            Radiobutton(self.frame1_label4,
                         textvariable=l,
-                        padx=20,
+                        padx=PADX_WIDGET,
+                        pady=PADY_WIDGET,
                         variable=self.noise_type,
                         command=self.set_noise_type,
-                        activeforeground="#2196F3",
+                        activeforeground=FOREGROUND_COLOR,
                         value=val).pack(anchor="w")
+
+        self.noise_scale = Scale(self.frame1, label="Noise scale", from_=0.01, resolution=0.01, to=1,
+                                 orient="horizontal",
+                                 background=BACKGORUND_COLOR, length="140", highlightcolor=FOREGROUND_COLOR,
+                                 variable=self.w1)
+        self.noise_scale.pack(side="top", expand=1, padx=PADX_WIDGET, pady=PADY_WIDGET)
+
+        self.start_button = Button(self.frame1, textvariable=self.b3, bg=BACKGORUND_COLOR,
+                                   activeforeground=FOREGROUND_COLOR, command=self.start)
+        self.start_button.pack(side="top", expand=1, padx=PADX_WIDGET, pady=PADY_WIDGET)
 
     def set_kernel_type(self):
         self.kernel.set_type(self.mask_type.get())
@@ -373,6 +413,9 @@ class Application(Frame):
             "b3": "Filter",
             "b5": "Add noise",
             "b6": "Show noise histogram",
+            "b7": "File",
+            "b8": "Noise",
+            "b9": "Language",
 
             "n1": "Gaussian",
             "n2": "Salt and pepper",
@@ -405,11 +448,6 @@ class Application(Frame):
         self.m6.set(dict1["m6"])
         self.m7.set(dict1["m7"])
 
-        self.l1.set(dict1["l1"])
-        self.l2.set(dict1["l2"])
-        self.l3.set(dict1["l3"])
-        self.l4.set(dict1["l4"])
-
         self.n1.set(dict1["n1"])
         self.n2.set(dict1["n2"])
         self.n3.set(dict1["n3"])
@@ -418,12 +456,24 @@ class Application(Frame):
         self.h2.set(dict1["h2"])
         self.h3.set(dict1["h3"])
 
-        self.b0.set(dict1["b0"])
-        self.b1.set(dict1["b1"])
-        self.b2.set(dict1["b2"])
         self.b3.set(dict1["b3"])
-        self.b5.set(dict1["b5"])
-        self.b6.set(dict1["b6"])
+
+        # self.mainmenu.entryconfigure(0, label=dict1["b7"])
+        # self.mainmenu.entryconfigure(1, label=dict1["b8"])
+        # self.mainmenu.entryconfigure(2, label=dict1["b9"])
+
+        self.filemenu.entryconfigure(0, label=dict1["b0"])
+        self.filemenu.entryconfigure(1, label=dict1["b1"])
+        self.filemenu.entryconfigure(2, label=dict1["b2"])
+        # self.filemenu.entryconfigure(0, label=dict1["b9"]) #exit
+
+        self.noise_menu.entryconfigure(0, label=dict1["b5"])
+        self.noise_menu.entryconfigure(1, label=dict1["b6"])
+
+        self.frame1_label1.configure(text=dict1["l1"])
+        self.frame1_label2.configure(text=dict1["l2"])
+        self.frame1_label3.configure(text=dict1["l3"])
+        self.frame1_label4.configure(text=dict1["l4"])
 
     def image_swap(self):
         self.img = self.img_new
@@ -439,31 +489,31 @@ class Application(Frame):
         if self.panelC is not None:
             self.panelC.get_tk_widget().destroy()
         if self.w2.get() == 1:
-            fig, ax = plt.subplots(figsize=(4.5, 3.5))
+            fig, ax = plt.subplots(figsize=PLOT_SIZE)
             if self.noise.channels == 1:
                 hist_colors = ['darkblue']
             else:
                 hist_colors = ['blue', 'red', 'green']
             ax.hist(self.noise.noise[0], bins='auto', density=True, color=hist_colors)
-            # ax.set_xlabel(self.h1.get())
-            # ax.set_ylabel(self.h2.get())
-            # ax.set_title(self.h3.get())
+            ax.set_xlabel(self.h1.get())
+            ax.set_ylabel(self.h2.get())
+            ax.set_title(self.h3.get())
 
-            self.panelC = FigureCanvasTkAgg(fig, self.noise_frame)
+            self.panelC = FigureCanvasTkAgg(fig, self.frame2b1)
             self.panelC.draw()
-            self.panelC.get_tk_widget().pack(side="right", fill="both", expand=1)
+            self.panelC.get_tk_widget().pack(padx=PADX_WIDGET, pady=PADY_WIDGET, fill="both", expand=1)
             plt.close()
 
     def plot_kernel(self):
         df_cm = DataFrame(self.kernel.get_teo_kernel())
-        plt.figure(figsize=(4.5, 3.5))
+        plt.figure(figsize=PLOT_SIZE)
         set(font_scale=1.2)  # for label size
-        heatmap(df_cm, annot=True, annot_kws={"size": 9})  # font size
+        heatmap(df_cm, annot=True, annot_kws={"size": FONT_SIZE_KERNEL})  # font size
         if self.panelD is not None:
             self.panelD.get_tk_widget().destroy()
-        self.panelD = FigureCanvasTkAgg(plt.gcf(), self.kernel_frame)
+        self.panelD = FigureCanvasTkAgg(plt.gcf(), self.frame2a1)
         self.panelD.draw()
-        self.panelD.get_tk_widget().pack(side="left", fill="both", expand=1)
+        self.panelD.get_tk_widget().pack(padx=PADX_WIDGET, pady=PADY_WIDGET, fill="both", expand=1)
         plt.close()
 
     def start(self):
@@ -494,8 +544,7 @@ class Application(Frame):
         if file_path:
             with open(file_path, "rb"):
                 self.img = imread(file_path, IMREAD_UNCHANGED)
-            height = 350
-            self.img = resize(self.img, (int(height * (self.img.shape[1] / self.img.shape[0])), height))
+            self.img = resize(self.img, (int(IMG_SIZE * (self.img.shape[1] / self.img.shape[0])), IMG_SIZE))
             self.img_new = self.img
         assert self.img is not None, "file could not be read, check with os.path.exists()"
         self.show_image()
@@ -516,13 +565,13 @@ class Application(Frame):
         # if the panels are None, initialize them
         if self.panelA is None or self.panelB is None:
             # the first panel will store our original image
-            self.panelA = Label(self.image_frame, image=img_show)
+            self.panelA = Label(self.frame2a2, image=img_show)
             self.panelA.image = img_show
-            self.panelA.pack(side="left", padx=10, pady=10)
+            self.panelA.pack(padx=PADX_WIDGET, pady=PADY_WIDGET)
             # while the second panel will store the edge map
-            self.panelB = Label(self.image_frame, image=img_new_show)
+            self.panelB = Label(self.frame2b2, image=img_new_show)
             self.panelB.image = img_new_show
-            self.panelB.pack(side="right", padx=10, pady=10)
+            self.panelB.pack(padx=PADX_WIDGET, pady=PADY_WIDGET)
         # otherwise, update the image panels
         else:
             # update the pannels
