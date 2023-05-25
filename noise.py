@@ -50,10 +50,10 @@ class Noise:
         return self._mul
 
     def set_mul(self, value):
-        self._mul = value
-        self._noise = self._create_nosie(self._type, self._mul, self._size, self._channels)
+        self._mul = float(value)
 
     def image_noise(self, image):
+        self._noise = self._create_nosie(self._type, self._mul, self._size, self._channels)
         if self.noise is not None and image is not None:
             if self.type == 301:
                 return add(image, self._noise)
@@ -63,7 +63,6 @@ class Noise:
                 raise ValueError(f'Unsupported noise type: {self.type}')
         else:
             raise ValueError("Noise or image not set")
-
 
     def _create_nosie(self, noise_type, mul, size, channels):
         if channels and size and mul:
