@@ -4,7 +4,7 @@ from app import *
 
 
 def main():
-    root = Tk()
+    root = Tk(className="poc")
     app = Application(master=root)
     app.mainloop()
 
