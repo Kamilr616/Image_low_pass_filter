@@ -2,7 +2,7 @@ from cv2 import imwrite, imread, cvtColor, COLOR_BGR2RGB, medianBlur, filter2D, 
 
 from os import getcwd
 
-from tkinter import Button, Label, Radiobutton, StringVar, IntVar, Frame, Scale, DoubleVar, Checkbutton, font, Menu, \
+from tkinter import Button, Label, Radiobutton, StringVar, IntVar, Frame, Scale, DoubleVar, font, Menu, \
     LabelFrame
 
 from PIL import Image, ImageTk
