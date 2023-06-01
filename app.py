@@ -28,11 +28,11 @@ PADY_WIDGET = 2
 FOREGROUND_COLOR = "#2196F3"
 BACKGROUND_COLOR = "#4CAF50"
 FONT_FAMILY = "Thaoma"
-FONT_SIZE = 15
-FONT_SIZE_KERNEL = 11
-FONT_SIZE_TITLE = 27
-PLOT_SIZE = (4, 3.5)
-IMG_SIZE = 400
+FONT_SIZE = 20
+FONT_SIZE_KERNEL = 12
+FONT_SIZE_TITLE = 35
+PLOT_SIZE = (5.75, 4.9)
+IMG_SIZE = 575
 
 
 class Application(Frame):
@@ -43,7 +43,7 @@ class Application(Frame):
         self.pack()
         self.master.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('ans.ico')))
         self.master.minsize(800, 400)
-        self.master.option_add("*Font", font.Font(family="Arial"))
+        self.master.option_add("*Font", font.Font(family=FONT_FAMILY, size=FONT_SIZE))
 
         self.panelA = None
         self.panelB = None
@@ -541,7 +541,7 @@ class Application(Frame):
             ax.yaxis.set_visible(False)  # Ukrycie osi y
             #ax.set_xlabel(self.h1.get())
             #ax.set_ylabel(self.h2.get())
-            ax.set_title(self.h3.get())
+            ax.set_title(self.h3.get(), fontsize=FONT_SIZE)
             self.panelC = FigureCanvasTkAgg(fig, self.frame2b2)
             self.panelC.draw()
             self.panelC.get_tk_widget().pack(padx=PADX_WIDGET, pady=PADY_WIDGET, expand=1)
@@ -553,7 +553,7 @@ class Application(Frame):
         if self.w3.get() == 1:
             df_cm = DataFrame(self.kernel.get_teo_kernel())
             plt.figure(figsize=PLOT_SIZE)
-            set(font_scale=1.2)  # for label size
+            set(font_scale=1.3)  # for label size
             heatmap(df_cm, annot=True, annot_kws={"size": FONT_SIZE_KERNEL}, fmt=".1g", square=True)  # font size
             if self.panelD is not None:
                 self.panelD.get_tk_widget().destroy()
