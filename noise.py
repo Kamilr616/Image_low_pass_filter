@@ -1,9 +1,9 @@
-from numpy import uint8, ones, random, nan, nan_to_num
+from numpy import uint8, ones, random, nan, nan_to_num, clip
 
 from cv2 import randn, add, multiply
 
-MEAN = 128
-STD_DEV = 20
+MEAN = 127
+STD_DEV = 32
 
 
 class Noise:
@@ -55,10 +55,11 @@ class Noise:
     def image_noise(self, image):
         self._noise = self._create_nosie(self._type, self._mul, self._size, self._channels)
         if self.noise is not None and image is not None:
+            noise = self._noise
             if self.type == 301:
-                return add(image, self._noise)
+                return add(image, noise)
             elif self.type == 302:
-                return multiply(image, self._noise)
+                return add(image, noise)
             else:
                 raise ValueError(f'Unsupported noise type: {self.type}')
         else:

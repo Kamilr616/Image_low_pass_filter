@@ -31,7 +31,7 @@ FONT_FAMILY = "Thaoma"
 FONT_SIZE = 15
 FONT_SIZE_KERNEL = 11
 FONT_SIZE_TITLE = 27
-PLOT_SIZE = (4.1, 3.5)
+PLOT_SIZE = (4, 3.5)
 IMG_SIZE = 400
 
 
@@ -139,7 +139,7 @@ class Application(Frame):
         self.frame1_label1 = LabelFrame(self.frame1)
         self.frame1_label2 = LabelFrame(self.frame1)
         self.frame1_label3 = LabelFrame(self.frame1)
-        # self.frame1_label4 = LabelFrame(self.frame1)
+
         self.frame1a = Frame(self.frame1)
 
         self.frame2 = Frame(self.frame0)
@@ -191,7 +191,7 @@ class Application(Frame):
         self.mask_type.set(102)
         self.noise_type.set(301)
         self.lang.set(201)
-        self.w1.set(0.25)
+        self.w1.set(0.5)
         self.w2.set(1)
         self.w3.set(1)
 
@@ -230,7 +230,7 @@ class Application(Frame):
         self.noise_scale = Scale(self.frame1_label3, from_=0.01, resolution=0.01, to=1,
                                  orient="horizontal", font=(FONT_FAMILY, FONT_SIZE),
                                  background=BACKGROUND_COLOR, highlightcolor=FOREGROUND_COLOR,
-                                 variable=self.w1, command=self.noise.set_mul)
+                                 variable=self.w1, command=self.set_noise_multiplier)
         self.noise_scale.pack(side="top", fill="both", expand=1, padx=PADX_WIDGET, pady=PADY_WIDGET)
 
         self.add_noise_button = Button(self.frame1, textvariable=self.b5, bg=BACKGROUND_COLOR,
@@ -256,9 +256,9 @@ class Application(Frame):
         self.kernel.set_size(self.mask_size.get())
         self.plot_kernel()
 
-    def set_noise_multiplier(self):
-        self.noise.set_mul(self.w2.get())
-        self.plot_noise()
+    def set_noise_multiplier(self, mul1):
+        self.noise.set_mul(mul1)
+        #self.plot_noise()
 
     def set_noise_type(self):
         self.noise.set_type(self.noise_type.get())
@@ -435,7 +435,7 @@ class Application(Frame):
             "k1": "Kernel:",
             "k2": "Input:",
             "k3": "Output:",
-            "k4": "Image enchanment",
+            "k4": "Image enhancement",
 
             "m1": "Average",
             "m2": "Gaussian",
@@ -523,7 +523,9 @@ class Application(Frame):
 
     def image_noise(self):
         self.img_new = self.noise.image_noise(self.img)
+        self.img_new = clip(self.img_new - (96 * self.w1.get()), 0, 255).astype(uint8)
         self.show_image()
+        self.plot_noise()
 
     def plot_noise(self):
         if self.panelC is not None:
@@ -535,8 +537,10 @@ class Application(Frame):
             else:
                 hist_colors = ['blue', 'red', 'green']
             ax.hist(self.noise.noise[0], bins='auto', density=True, color=hist_colors)
-            # ax.set_xlabel(self.h1.get())
-            # ax.set_ylabel(self.h2.get())
+            ax.axis([0, 255, None, None])  # Oś x od 0 do 255
+            ax.yaxis.set_visible(False)  # Ukrycie osi y
+            #ax.set_xlabel(self.h1.get())
+            #ax.set_ylabel(self.h2.get())
             ax.set_title(self.h3.get())
             self.panelC = FigureCanvasTkAgg(fig, self.frame2b2)
             self.panelC.draw()
