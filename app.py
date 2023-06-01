@@ -28,7 +28,7 @@ PADY_WIDGET = 2
 FOREGROUND_COLOR = "#2196F3"
 BACKGROUND_COLOR = "#4CAF50"
 FONT_FAMILY = "Thaoma"
-FONT_SIZE = 20
+FONT_SIZE = 21
 FONT_SIZE_KERNEL = 12
 FONT_SIZE_TITLE = 35
 PLOT_SIZE = (5.75, 4.9)
@@ -68,7 +68,7 @@ class Application(Frame):
         self.h3 = StringVar()
         self.n1 = StringVar()
         self.n2 = StringVar()
-        self.n3 = StringVar()
+        #self.n3 = StringVar()
         self.b0 = StringVar()
         self.b1 = StringVar()
         self.b2 = StringVar()
@@ -109,11 +109,11 @@ class Application(Frame):
         self.mainmenu.add_cascade(menu=self.filemenu)
         # Menu 2
         self.noise_menu = Menu(self.mainmenu, tearoff=0)
-        self.noise_menu.add_radiobutton(variable=self.noise_type, value=301, activeforeground=FOREGROUND_COLOR,
-                                        command=self.set_noise_type)
-        self.noise_menu.add_radiobutton(variable=self.noise_type, value=302, activeforeground=FOREGROUND_COLOR,
-                                        command=self.set_noise_type)
-        self.noise_menu.add_separator()
+        # self.noise_menu.add_radiobutton(variable=self.noise_type, value=301, activeforeground=FOREGROUND_COLOR,
+        #                                 command=self.set_noise_type)
+        # self.noise_menu.add_radiobutton(variable=self.noise_type, value=302, activeforeground=FOREGROUND_COLOR,
+        #                                 command=self.set_noise_type)
+        #self.noise_menu.add_separator()
         self.noise_menu.add_checkbutton(variable=self.w2, command=self.plot_noise)
         self.noise_menu.add_checkbutton(variable=self.w3, command=self.plot_kernel)
         self.mainmenu.add_cascade(menu=self.noise_menu)
@@ -139,6 +139,7 @@ class Application(Frame):
         self.frame1_label1 = LabelFrame(self.frame1)
         self.frame1_label2 = LabelFrame(self.frame1)
         self.frame1_label3 = LabelFrame(self.frame1)
+        self.frame1_label4 = LabelFrame(self.frame1)
 
         self.frame1a = Frame(self.frame1)
 
@@ -202,6 +203,8 @@ class Application(Frame):
         self.frame1_label1.pack(side="top", fill="both", pady=PADY_FRAME, padx=PADX_FRAME)
         self.frame1_label2.pack(side="top", fill="both", pady=PADY_FRAME, padx=PADX_FRAME)
         self.frame1_label3.pack(side="top", fill="both", pady=PADY_FRAME, padx=PADX_FRAME)
+        self.frame1_label4.pack(side="top", fill="both", pady=PADY_FRAME, padx=PADX_FRAME)
+
 
         self.frame1a.pack(side="top", fill="both", pady=PADY_FRAME, padx=PADX_FRAME)
 
@@ -226,8 +229,35 @@ class Application(Frame):
                         command=self.set_kernel_size,
                         activeforeground=FOREGROUND_COLOR,
                         value=val).pack(anchor="w")
+            
+        #             self.noise_menu.add_radiobutton(variable=self.noise_type, value=301, activeforeground=FOREGROUND_COLOR,
+        #                                 command=self.set_noise_type)
+        # self.noise_menu.add_radiobutton(variable=self.noise_type, value=302, activeforeground=FOREGROUND_COLOR,
+        #                                 command=self.set_noise_type)
 
-        self.noise_scale = Scale(self.frame1_label3, from_=0.01, resolution=0.01, to=1,
+        self.noise_type_label_1 = Radiobutton(self.frame1_label3,
+                                             textvariable=self.n1,
+                                             padx=PADX_WIDGET,
+                                             pady=PADY_WIDGET,
+                                             font=(FONT_FAMILY, FONT_SIZE),
+                                             variable=self.noise_type,
+                                             command=self.set_noise_type,
+                                             activeforeground=FOREGROUND_COLOR,
+                                             value=301)
+        self.noise_type_label_1.pack(anchor="w")
+
+        self.noise_type_label_2 = Radiobutton(self.frame1_label3,
+                                             textvariable=self.n2,
+                                             padx=PADX_WIDGET,
+                                             pady=PADY_WIDGET,
+                                             font=(FONT_FAMILY, FONT_SIZE),
+                                             variable=self.noise_type,
+                                             command=self.set_noise_type,
+                                             activeforeground=FOREGROUND_COLOR,
+                                             value=302)
+        self.noise_type_label_2.pack(anchor="w")
+
+        self.noise_scale = Scale(self.frame1_label4, from_=0.01, resolution=0.01, to=1,
                                  orient="horizontal", font=(FONT_FAMILY, FONT_SIZE),
                                  background=BACKGROUND_COLOR, highlightcolor=FOREGROUND_COLOR,
                                  variable=self.w1, command=self.set_noise_multiplier)
@@ -236,17 +266,20 @@ class Application(Frame):
         self.add_noise_button = Button(self.frame1, textvariable=self.b5, bg=BACKGROUND_COLOR,
                                        activeforeground=FOREGROUND_COLOR, command=self.image_noise,
                                        font=(FONT_FAMILY, FONT_SIZE))
-        self.add_noise_button.pack(side="right", fill="both", expand=1, padx=PADX_WIDGET, pady=PADY_WIDGET)
+        self.add_noise_button.pack(side="right", fill="y", expand=0, padx=PADX_WIDGET, pady=PADY_WIDGET)
 
-        self.add_swap_button = Button(self.frame1a, textvariable=self.b2, bg=BACKGROUND_COLOR,
-                                      activeforeground=FOREGROUND_COLOR, command=self.image_swap,
-                                      font=(FONT_FAMILY, FONT_SIZE))
-        self.add_swap_button.pack(side="left", fill="both", expand=1, padx=PADX_WIDGET, pady=PADY_WIDGET)
-
-        self.start_button = Button(self.frame1a, textvariable=self.b3, bg=BACKGROUND_COLOR,
+        self.start_button = Button(self.frame1, textvariable=self.b3, bg=BACKGROUND_COLOR,
                                    font=(FONT_FAMILY, FONT_SIZE),
                                    activeforeground=FOREGROUND_COLOR, command=self.start)
-        self.start_button.pack(side="top", fill="both", expand=1, padx=PADX_WIDGET, pady=PADY_WIDGET)
+        self.start_button.pack(side="top", fill="both", expand=1, padx=0, pady=0)
+
+        self.add_swap_button = Button(self.frame1, textvariable=self.b2, bg=BACKGROUND_COLOR,
+                                      activeforeground=FOREGROUND_COLOR, command=self.image_swap,
+                                      font=(FONT_FAMILY, FONT_SIZE))
+        self.add_swap_button.pack(side="left", fill="y", expand=0, padx=PADX_WIDGET, pady=PADY_WIDGET)
+
+#TODO Buttons
+
 
     def set_kernel_type(self):
         self.kernel.set_type(self.mask_type.get())
@@ -391,6 +424,8 @@ class Application(Frame):
             "l3": "Język",
             "l4": "Szum",
             "l5": "Plik",
+            "l6": "Opcje",
+
 
             "k1": "Maska:",
             "k2": "Wejście:",
@@ -403,7 +438,6 @@ class Application(Frame):
             "m4": "Elipsa",
             "m5": "Trapez",
             "m6": "Mediana",
-            "m7": "Bilateralna",
 
             "b0": "Wybierz obraz",
             "b1": "Zapisz obraz jako",
@@ -429,8 +463,9 @@ class Application(Frame):
             "l1": "Kernel type:",
             "l2": "Kernel size:",
             "l3": "Language",
-            "l4": "Noise",
+            "l4": "Noise type",
             "l5": "File",
+            "l6": "Options",
 
             "k1": "Kernel:",
             "k2": "Input:",
@@ -492,29 +527,30 @@ class Application(Frame):
         self.h2.set(dict1["h2"])
         self.h3.set(dict1["h3"])
 
+        self.n1.set(dict1["n1"])
+        self.n2.set(dict1["n2"])
+
         self.b2.set(dict1["b2"])
         self.b3.set(dict1["b3"])
         self.b5.set(dict1["b5"])
 
         self.mainmenu.entryconfigure(1, label=dict1["l5"])
-        self.mainmenu.entryconfigure(2, label=dict1["l4"])
+        self.mainmenu.entryconfigure(2, label=dict1["l6"])
         self.mainmenu.entryconfigure(3, label=dict1["l3"])
 
         self.filemenu.entryconfigure(0, label=dict1["b0"])
         self.filemenu.entryconfigure(1, label=dict1["b1"])
         self.filemenu.entryconfigure(4, label=dict1["b10"])
 
-        self.noise_menu.entryconfigure(0, label=dict1["n1"])
-        self.noise_menu.entryconfigure(1, label=dict1["n2"])
-        self.noise_menu.entryconfigure(3, label=dict1["b6"])
-        self.noise_menu.entryconfigure(4, label=dict1["b7"])
-
-        # self.noise_scale.configure(label=dict1["b4"])
+        # self.noise_menu.entryconfigure(0, label=dict1["n1"])
+        # self.noise_menu.entryconfigure(1, label=dict1["n2"])
+        self.noise_menu.entryconfigure(0, label=dict1["b6"])
+        self.noise_menu.entryconfigure(1, label=dict1["b7"])
 
         self.frame1_label1.configure(text=dict1["l1"], font=(FONT_FAMILY, FONT_SIZE))
         self.frame1_label2.configure(text=dict1["l2"], font=(FONT_FAMILY, FONT_SIZE))
-        self.frame1_label3.configure(text=dict1["b4"], font=(FONT_FAMILY, FONT_SIZE))
-        # self.frame1_label4.configure(text=dict1["l4"])
+        self.frame1_label4.configure(text=dict1["b4"], font=(FONT_FAMILY, FONT_SIZE))
+        self.frame1_label3.configure(text=dict1["l4"], font=(FONT_FAMILY, FONT_SIZE))
         self.plot_noise()
 
     def image_swap(self):
