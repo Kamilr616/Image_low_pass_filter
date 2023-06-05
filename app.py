@@ -23,14 +23,14 @@ from noise import *
 
 PADX_FRAME = 8
 PADY_FRAME = 5
-PADX_WIDGET = 4
-PADY_WIDGET = 2
+PADX_WIDGET = 5
+PADY_WIDGET = 3
 FOREGROUND_COLOR = "#32CD32"
 BACKGROUND_COLOR = "#228B22"
 FONT_FAMILY = "Thaoma"
-FONT_SIZE = 15  # 21
-FONT_SIZE_KERNEL = 12
-FONT_SIZE_TITLE = 35
+FONT_SIZE = 22
+FONT_SIZE_KERNEL = 13
+FONT_SIZE_TITLE = 38
 PLOT_SIZE = (5.75, 4.9)
 IMG_SIZE = 575
 
@@ -62,9 +62,9 @@ class Application(Frame):
 
         self.noise = Noise()
         self.kernel = Kernel()
+
         self.noise_type = IntVar()
         self.path = StringVar()
-
         self.h1 = StringVar()
         self.h2 = StringVar()
         self.h3 = StringVar()
