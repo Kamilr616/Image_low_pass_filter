@@ -25,10 +25,10 @@ PADX_FRAME = 8
 PADY_FRAME = 5
 PADX_WIDGET = 4
 PADY_WIDGET = 2
-FOREGROUND_COLOR = "#2196F3"
-BACKGROUND_COLOR = "#4CAF50"
+FOREGROUND_COLOR = "#32CD32"
+BACKGROUND_COLOR = "#228B22"
 FONT_FAMILY = "Thaoma"
-FONT_SIZE = 21
+FONT_SIZE = 15  # 21
 FONT_SIZE_KERNEL = 12
 FONT_SIZE_TITLE = 35
 PLOT_SIZE = (5.75, 4.9)
@@ -36,9 +36,9 @@ IMG_SIZE = 575
 
 
 class Application(Frame):
-    # constructor
     def __init__(self, master=None):
         super().__init__(master)
+
         self.master = master
         self.pack()
         self.master.wm_iconphoto(False, ImageTk.PhotoImage(Image.open('ans.ico')))
@@ -51,24 +51,25 @@ class Application(Frame):
         self.panelD = None
         self.img = None
         self.img_new = None
-
         self.mask_box = None
         self.start_button = None
         self.noise_scale = None
         self.add_swap_button = None
         self.add_noise_button = None
         self.frame0_title_label = None
+        self.noise_type_label_1 = None
+        self.noise_type_label_2 = None
 
         self.noise = Noise()
         self.kernel = Kernel()
         self.noise_type = IntVar()
         self.path = StringVar()
+
         self.h1 = StringVar()
         self.h2 = StringVar()
         self.h3 = StringVar()
         self.n1 = StringVar()
         self.n2 = StringVar()
-        #self.n3 = StringVar()
         self.b0 = StringVar()
         self.b1 = StringVar()
         self.b2 = StringVar()
@@ -98,25 +99,21 @@ class Application(Frame):
         self.w2 = IntVar()
         self.w3 = IntVar()
 
-        self.mainmenu = Menu(self.master)
+        self.mainmenu = Menu(self.master, activeforeground=FOREGROUND_COLOR)
         self.master.config(menu=self.mainmenu)
         # Menu 1
-        self.filemenu = Menu(self.mainmenu, tearoff=0)
+        self.filemenu = Menu(self.mainmenu, tearoff=0, activeforeground=FOREGROUND_COLOR)
         self.filemenu.add_command(command=self.select_image)
         self.filemenu.add_command(command=self.image_save)
         self.filemenu.add_separator()
         self.filemenu.add_command(command=self.master.destroy)
         self.mainmenu.add_cascade(menu=self.filemenu)
         # Menu 2
-        self.noise_menu = Menu(self.mainmenu, tearoff=0)
-        # self.noise_menu.add_radiobutton(variable=self.noise_type, value=301, activeforeground=FOREGROUND_COLOR,
-        #                                 command=self.set_noise_type)
-        # self.noise_menu.add_radiobutton(variable=self.noise_type, value=302, activeforeground=FOREGROUND_COLOR,
-        #                                 command=self.set_noise_type)
-        #self.noise_menu.add_separator()
-        self.noise_menu.add_checkbutton(variable=self.w2, command=self.plot_noise)
-        self.noise_menu.add_checkbutton(variable=self.w3, command=self.plot_kernel)
-        self.mainmenu.add_cascade(menu=self.noise_menu)
+        self.optionsmenu = Menu(self.mainmenu, tearoff=0, activeforeground=FOREGROUND_COLOR)
+        self.optionsmenu.add_checkbutton(variable=self.w2, command=self.plot_noise)
+        self.optionsmenu.add_separator()
+        self.optionsmenu.add_checkbutton(variable=self.w3, command=self.plot_kernel)
+        self.mainmenu.add_cascade(menu=self.optionsmenu)
 
         # Menu 3
         self.menu_3 = Menu(self.mainmenu, tearoff=0)
@@ -129,6 +126,10 @@ class Application(Frame):
         self.menu_3.add_radiobutton(label="Español", value=204, variable=self.lang, activeforeground=FOREGROUND_COLOR,
                                     command=self.change_language)
         self.menu_3.add_radiobutton(label="Українська", value=205, variable=self.lang,
+                                    activeforeground=FOREGROUND_COLOR, command=self.change_language)
+        self.menu_3.add_radiobutton(label="Italiano", value=206, variable=self.lang,
+                                    activeforeground=FOREGROUND_COLOR, command=self.change_language)
+        self.menu_3.add_radiobutton(label="中文", value=207, variable=self.lang,
                                     activeforeground=FOREGROUND_COLOR, command=self.change_language)
         self.mainmenu.add_cascade(menu=self.menu_3)
 
@@ -172,7 +173,6 @@ class Application(Frame):
         self.plot_noise()
         self.plot_kernel()
 
-    # function for creating widgets
     def create_widgets(self):
         masks = [(102, self.m1),
                  (103, self.m2),
@@ -205,7 +205,6 @@ class Application(Frame):
         self.frame1_label3.pack(side="top", fill="both", pady=PADY_FRAME, padx=PADX_FRAME)
         self.frame1_label4.pack(side="top", fill="both", pady=PADY_FRAME, padx=PADX_FRAME)
 
-
         self.frame1a.pack(side="top", fill="both", pady=PADY_FRAME, padx=PADX_FRAME)
 
         for val, m in masks:
@@ -229,57 +228,49 @@ class Application(Frame):
                         command=self.set_kernel_size,
                         activeforeground=FOREGROUND_COLOR,
                         value=val).pack(anchor="w")
-            
-        #             self.noise_menu.add_radiobutton(variable=self.noise_type, value=301, activeforeground=FOREGROUND_COLOR,
-        #                                 command=self.set_noise_type)
-        # self.noise_menu.add_radiobutton(variable=self.noise_type, value=302, activeforeground=FOREGROUND_COLOR,
-        #                                 command=self.set_noise_type)
 
         self.noise_type_label_1 = Radiobutton(self.frame1_label3,
-                                             textvariable=self.n1,
-                                             padx=PADX_WIDGET,
-                                             pady=PADY_WIDGET,
-                                             font=(FONT_FAMILY, FONT_SIZE),
-                                             variable=self.noise_type,
-                                             command=self.set_noise_type,
-                                             activeforeground=FOREGROUND_COLOR,
-                                             value=301)
+                                              textvariable=self.n1,
+                                              padx=PADX_WIDGET,
+                                              pady=PADY_WIDGET,
+                                              font=(FONT_FAMILY, FONT_SIZE),
+                                              variable=self.noise_type,
+                                              command=self.set_noise_type,
+                                              activeforeground=FOREGROUND_COLOR,
+                                              value=301)
         self.noise_type_label_1.pack(anchor="w")
 
         self.noise_type_label_2 = Radiobutton(self.frame1_label3,
-                                             textvariable=self.n2,
-                                             padx=PADX_WIDGET,
-                                             pady=PADY_WIDGET,
-                                             font=(FONT_FAMILY, FONT_SIZE),
-                                             variable=self.noise_type,
-                                             command=self.set_noise_type,
-                                             activeforeground=FOREGROUND_COLOR,
-                                             value=302)
+                                              textvariable=self.n2,
+                                              padx=PADX_WIDGET,
+                                              pady=PADY_WIDGET,
+                                              font=(FONT_FAMILY, FONT_SIZE),
+                                              variable=self.noise_type,
+                                              command=self.set_noise_type,
+                                              activeforeground=FOREGROUND_COLOR,
+                                              value=302)
         self.noise_type_label_2.pack(anchor="w")
 
         self.noise_scale = Scale(self.frame1_label4, from_=0.01, resolution=0.01, to=1,
                                  orient="horizontal", font=(FONT_FAMILY, FONT_SIZE),
                                  background=BACKGROUND_COLOR, highlightcolor=FOREGROUND_COLOR,
                                  variable=self.w1, command=self.set_noise_multiplier)
-        self.noise_scale.pack(side="top", fill="both", expand=1, padx=PADX_WIDGET, pady=PADY_WIDGET)
+        self.noise_scale.pack(side="top", fill="both", padx=PADX_WIDGET, pady=PADY_WIDGET)
 
         self.add_noise_button = Button(self.frame1, textvariable=self.b5, bg=BACKGROUND_COLOR,
                                        activeforeground=FOREGROUND_COLOR, command=self.image_noise,
                                        font=(FONT_FAMILY, FONT_SIZE))
-        self.add_noise_button.pack(side="right", fill="y", expand=0, padx=PADX_WIDGET, pady=PADY_WIDGET)
+        self.add_noise_button.pack(side="top", fill="y", expand=0, padx=PADX_WIDGET, pady=PADY_WIDGET)
 
         self.start_button = Button(self.frame1, textvariable=self.b3, bg=BACKGROUND_COLOR,
-                                   font=(FONT_FAMILY, FONT_SIZE),
+                                   font=(FONT_FAMILY, (FONT_SIZE + 5)),
                                    activeforeground=FOREGROUND_COLOR, command=self.start)
         self.start_button.pack(side="top", fill="both", expand=1, padx=0, pady=0)
 
         self.add_swap_button = Button(self.frame1, textvariable=self.b2, bg=BACKGROUND_COLOR,
                                       activeforeground=FOREGROUND_COLOR, command=self.image_swap,
                                       font=(FONT_FAMILY, FONT_SIZE))
-        self.add_swap_button.pack(side="left", fill="y", expand=0, padx=PADX_WIDGET, pady=PADY_WIDGET)
-
-#TODO Buttons
-
+        self.add_swap_button.pack(side="top", fill="y", expand=0, padx=PADX_WIDGET, pady=PADY_WIDGET)
 
     def set_kernel_type(self):
         self.kernel.set_type(self.mask_type.get())
@@ -291,7 +282,6 @@ class Application(Frame):
 
     def set_noise_multiplier(self, mul1):
         self.noise.set_mul(mul1)
-        #self.plot_noise()
 
     def set_noise_type(self):
         self.noise.set_type(self.noise_type.get())
@@ -302,13 +292,14 @@ class Application(Frame):
             "l1": "Тип маски:",
             "l2": "Розмір маски:",
             "l3": "Мова",
-            "l4": "Шум",
+            "l4": "Тип шуму",
             "l5": "Файл",
+            "l6": "Параметри",
 
             "k1": "Маска:",
             "k2": "Вхід:",
             "k3": "Вихід:",
-            "k4": "Інструмент налаштування зображення",
+            "k4": "Покращення зображення",
 
             "m1": "Середнє",
             "m2": "Гауссівське",
@@ -316,12 +307,11 @@ class Application(Frame):
             "m4": "Еліпс",
             "m5": "Трапеція",
             "m6": "Медіана",
-            "m7": "Білатеральне",
 
             "b0": "Вибрати зображення",
             "b1": "Зберегти зображення як",
             "b2": "Замінити зображення",
-            "b10": "Вихід",
+            "b10": "Вийти",
 
             "b3": "Фільтрувати",
             "b5": "Додати шум",
@@ -342,13 +332,14 @@ class Application(Frame):
             "l1": "Tipo de máscara:",
             "l2": "Tamaño de la máscara:",
             "l3": "Idioma",
-            "l4": "Ruido",
+            "l4": "Tipo de ruido",
             "l5": "Archivo",
+            "l6": "Opciones",
 
             "k1": "Máscara:",
             "k2": "Entrada:",
             "k3": "Salida:",
-            "k4": "Herramienta de ajuste de",
+            "k4": "Mejora de imagen",
 
             "m1": "Promedio",
             "m2": "Gaussiana",
@@ -356,11 +347,10 @@ class Application(Frame):
             "m4": "Elipse",
             "m5": "Trapecio",
             "m6": "Mediana",
-            "m7": "Bilateral",
 
             "b0": "Seleccionar imagen",
             "b1": "Guardar imagen como",
-            "b2": "Intercambiar imagen",
+            "b2": "Cambiar imagen",
             "b10": "Salir",
 
             "b3": "Filtrar",
@@ -378,25 +368,65 @@ class Application(Frame):
             "h3": "Distribución del ruido",
         }
 
+        ita = {
+            "l1": "Tipo di kernel:",
+            "l2": "Dimensione del kernel:",
+            "l3": "Lingua",
+            "l4": "Tipo di rumore",
+            "l5": "File",
+            "l6": "Opzioni",
+
+            "k1": "Kernel:",
+            "k2": "Input:",
+            "k3": "Output:",
+            "k4": "Miglioramento immagine",
+
+            "m1": "Media",
+            "m2": "Gaussiano",
+            "m3": "Croce",
+            "m4": "Ellisse",
+            "m5": "Trapezio",
+            "m6": "Mediana",
+
+            "b0": "Seleziona immagine",
+            "b1": "Salva immagine come",
+            "b2": "Scambia immagine",
+            "b10": "Esci",
+
+            "b3": "Filtra",
+            "b5": "Aggiungi rumore",
+            "b6": "Mostra istogramma del rumore",
+            "b7": "Mostra kernel",
+
+            "b4": "Livello di rumore",
+
+            "n1": "Gaussiano",
+            "n2": "Sale e pepe",
+
+            "h1": "Valore del pixel",
+            "h2": "Densità",
+            "h3": "Distribuzione del rumore",
+        }
+
         ger = {
             "l1": "Maskentyp:",
             "l2": "Maskengröße:",
             "l3": "Sprache",
-            "l4": "Rauschen",
+            "l4": "Rauschtyp",
             "l5": "Datei",
+            "l6": "Optionen",
 
             "k1": "Maske:",
             "k2": "Eingabe:",
             "k3": "Ausgabe:",
-            "k4": "Bildanpassungswerkzeug",
+            "k4": "Bildverbesserung",
 
             "m1": "Durchschnitt",
-            "m2": "Gaussisch",
+            "m2": "Gauß",
             "m3": "Kreuz",
             "m4": "Ellipse",
             "m5": "Trapez",
             "m6": "Median",
-            "m7": "Bilateral",
 
             "b0": "Bild auswählen",
             "b1": "Bild speichern als",
@@ -410,12 +440,52 @@ class Application(Frame):
 
             "b4": "Rauschpegel",
 
-            "n1": "Gaussisch",
+            "n1": "Gauß",
             "n2": "Salz und Pfeffer",
 
             "h1": "Pixelwert",
             "h2": "Dichte",
             "h3": "Verteilung des Rauschens",
+        }
+
+        chi = {
+            "l1": "内核类型：",
+            "l2": "内核大小：",
+            "l3": "语言",
+            "l4": "噪声类型",
+            "l5": "文件",
+            "l6": "选项",
+
+            "k1": "内核：",
+            "k2": "输入：",
+            "k3": "输出：",
+            "k4": "图像增强",
+
+            "m1": "平均",
+            "m2": "高斯",
+            "m3": "交叉",
+            "m4": "椭圆",
+            "m5": "梯形",
+            "m6": "中值",
+
+            "b0": "选择图像",
+            "b1": "另存为图像",
+            "b2": "交换图像",
+            "b10": "退出",
+
+            "b3": "滤波",
+            "b5": "添加噪声",
+            "b6": "显示噪声直方图",
+            "b7": "显示内核",
+
+            "b4": "噪声级别",
+
+            "n1": "高斯",
+            "n2": "椒盐",
+
+            "h1": "像素值",
+            "h2": "密度",
+            "h3": "噪声分布",
         }
 
         pol = {
@@ -425,7 +495,6 @@ class Application(Frame):
             "l4": "Szum",
             "l5": "Plik",
             "l6": "Opcje",
-
 
             "k1": "Maska:",
             "k2": "Wejście:",
@@ -442,7 +511,7 @@ class Application(Frame):
             "b0": "Wybierz obraz",
             "b1": "Zapisz obraz jako",
             "b2": "Zamień obraz",
-            "b10": "Wyjście",
+            "b10": "Zakończ",
 
             "b3": "Filtruj",
             "b5": "Dodaj szum",
@@ -478,7 +547,6 @@ class Application(Frame):
             "m4": "Eclipse",
             "m5": "Trapezoid",
             "m6": "Median",
-            "m7": "Bilateral",
 
             "b0": "Select image",
             "b1": "Save image as",
@@ -499,6 +567,7 @@ class Application(Frame):
             "h2": "Density",
             "h3": "Distribution of noise",
         }
+
         typed = self.lang.get()
         if typed == 201:
             dict1 = eng
@@ -510,6 +579,10 @@ class Application(Frame):
             dict1 = esp
         elif typed == 205:
             dict1 = ukr
+        elif typed == 206:
+            dict1 = ita
+        elif typed == 207:
+            dict1 = chi
         else:
             dict1 = eng
 
@@ -521,7 +594,6 @@ class Application(Frame):
         self.m4.set(dict1["m4"])
         self.m5.set(dict1["m5"])
         self.m6.set(dict1["m6"])
-        self.m7.set(dict1["m7"])
 
         self.h1.set(dict1["h1"])
         self.h2.set(dict1["h2"])
@@ -542,15 +614,14 @@ class Application(Frame):
         self.filemenu.entryconfigure(1, label=dict1["b1"])
         self.filemenu.entryconfigure(4, label=dict1["b10"])
 
-        # self.noise_menu.entryconfigure(0, label=dict1["n1"])
-        # self.noise_menu.entryconfigure(1, label=dict1["n2"])
-        self.noise_menu.entryconfigure(0, label=dict1["b6"])
-        self.noise_menu.entryconfigure(1, label=dict1["b7"])
+        self.optionsmenu.entryconfigure(0, label=dict1["b6"])
+        self.optionsmenu.entryconfigure(2, label=dict1["b7"])
 
         self.frame1_label1.configure(text=dict1["l1"], font=(FONT_FAMILY, FONT_SIZE))
         self.frame1_label2.configure(text=dict1["l2"], font=(FONT_FAMILY, FONT_SIZE))
         self.frame1_label4.configure(text=dict1["b4"], font=(FONT_FAMILY, FONT_SIZE))
         self.frame1_label3.configure(text=dict1["l4"], font=(FONT_FAMILY, FONT_SIZE))
+
         self.plot_noise()
 
     def image_swap(self):
@@ -574,9 +645,9 @@ class Application(Frame):
                 hist_colors = ['blue', 'red', 'green']
             ax.hist(self.noise.noise[0], bins='auto', density=True, color=hist_colors)
             ax.axis([0, 255, None, None])  # Oś x od 0 do 255
-            ax.yaxis.set_visible(False)  # Ukrycie osi y
-            #ax.set_xlabel(self.h1.get())
-            #ax.set_ylabel(self.h2.get())
+            ax.yaxis.set_visible(False)
+            # ax.set_xlabel(self.h1.get())
+            # ax.set_ylabel(self.h2.get())
             ax.set_title(self.h3.get(), fontsize=FONT_SIZE)
             self.panelC = FigureCanvasTkAgg(fig, self.frame2b2)
             self.panelC.draw()
@@ -589,7 +660,7 @@ class Application(Frame):
         if self.w3.get() == 1:
             df_cm = DataFrame(self.kernel.get_teo_kernel())
             plt.figure(figsize=PLOT_SIZE)
-            set(font_scale=1.3)  # for label size
+            set(font_scale=1.35)  # for label size
             heatmap(df_cm, annot=True, annot_kws={"size": FONT_SIZE_KERNEL}, fmt=".1g", square=True)  # font size
             if self.panelD is not None:
                 self.panelD.get_tk_widget().destroy()
@@ -608,7 +679,7 @@ class Application(Frame):
     def image_save(self):
         file_path = asksaveasfilename(initialdir=getcwd() + "/images/", initialfile='new_image.png',
                                       defaultextension="*.png", title=self.b1.get(),
-                                      filetypes=[("All Files", "*.*"), ("PNG", "*.png"), ("JPG", "*.jpg"),
+                                      filetypes=[("All Files", "*.*"), ("PNG", "*.png"), ("JPEG", "*.jpeg;*.jpg"),
                                                  ("BMP", "*.bmp")])
         if file_path:
             with open(file_path, 'wb'):
@@ -618,7 +689,7 @@ class Application(Frame):
     def select_image(self, flag=0):
         if flag == 0:
             file_path = askopenfilename(initialdir=getcwd() + "/images/", initialfile='lena.bmp', title=self.b0.get(),
-                                        filetypes=[("All Files", "*.*"), ("PNG", "*.png"), ("JPG", "*.jpg"),
+                                        filetypes=[("All Files", "*.*"), ("PNG", "*.png"), ("JPEG", "*.jpeg;*.jpg"),
                                                    ("BMP", "*.bmp")])
         else:
             file_path = "images/lena.bmp"
@@ -633,30 +704,20 @@ class Application(Frame):
         self.plot_noise()
 
     def show_image(self):
-        # OpenCV represents images in BGR order; however PIL represents
-        # images in RGB order, so we need to swap the channels
         img_show = cvtColor(self.img, COLOR_BGR2RGB)
         img_new_show = cvtColor(self.img_new, COLOR_BGR2RGB)
-
-        # convert the images to PIL format...
         img_show = Image.fromarray(img_show)
         img_new_show = Image.fromarray(img_new_show)
-        # ...and then to ImageTk format
         img_show = ImageTk.PhotoImage(img_show)
         img_new_show = ImageTk.PhotoImage(img_new_show)
-        # if the panels are None, initialize them
         if self.panelA is None or self.panelB is None:
-            # the first panel will store our original image
             self.panelA = Label(self.frame2a1, image=img_show)
             self.panelA.image = img_show
             self.panelA.pack(padx=PADX_WIDGET, pady=PADY_WIDGET)
-            # while the second panel will store the edge map
             self.panelB = Label(self.frame2a2, image=img_new_show)
             self.panelB.image = img_new_show
             self.panelB.pack(padx=PADX_WIDGET, pady=PADY_WIDGET)
-        # otherwise, update the image panels
         else:
-            # update the pannels
             self.panelA.configure(image=img_show)
             self.panelB.configure(image=img_new_show)
             self.panelA.image = img_show
