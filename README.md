@@ -6,7 +6,7 @@ Ten program to implementacja filtru dolnoprzepustowego, który służy do wygła
 
 ## Instrukcja obsługi
 
-1. Pobierz plik wykonywalny programu z [tutaj](Image_Enhancement_Tool.exe).
+1. Pobierz plik wykonywalny programu.
 2. Uruchom plik `.exe` na systemie Windows.
 3. Wczytaj obraz, na którym chcesz zastosować filtr dolnoprzepustowy.
 4. Wybierz parametry filtru, takie jak rozmiar maski oraz typ filtracji.
@@ -21,4 +21,4 @@ Ten program to implementacja filtru dolnoprzepustowego, który służy do wygła
 
 ## Autor
 
-Napisane przez Kamil Rataj, Marcin Golonka oraz Jakub Jędrychowski
+Napisane przez Kamil Rataj
